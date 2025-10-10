@@ -1,0 +1,22 @@
+{
+  "projectName": "testy",
+  "mode": "file-router",
+  "typescript": true,
+  "tailwind": true,
+  "packageManager": "npm",
+  "addOnOptions": {},
+  "git": true,
+  "version": 1,
+  "framework": "react-cra",
+  "chosenAddOns": [
+    "biome",
+    "nitro",
+    "start",
+    "mcp",
+    "tanstack-query",
+    "shadcn",
+    "form",
+    "oRPC",
+    "t3env"
+  ]
+}
