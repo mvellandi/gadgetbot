@@ -97,6 +97,10 @@ Schema.Number.pipe(
 // Type inference
 const MySchema = Schema.Struct({ name: Schema.String })
 type MyType = typeof MySchema.Type
+
+// Standard Schema V1 (for oRPC, TanStack Form, etc.)
+// Wrap Effect schemas for libraries that expect Standard Schema
+const StandardMySchema = Schema.standardSchemaV1(MySchema)
 ```
 
 **Services:**
@@ -117,11 +121,11 @@ type MyType = typeof MySchema.Type
 
 ### Environment Variables
 
-- Managed by T3 Env in `src/env.ts`
+- Managed with Effect Schema in `src/env.ts`
 - Server vars: Plain names (e.g., `SERVER_URL`)
 - Client vars: Must start with `VITE_` prefix (e.g., `VITE_APP_TITLE`)
 - Add new vars to schema in `src/env.ts`, then use via `import { env } from '@/env'`
-- **Note**: Migrate env.ts to use Effect Schema instead of Zod
+- Empty strings are automatically converted to `undefined` for proper optional handling
 
 ### Styling
 
@@ -163,21 +167,24 @@ export const Route = createFileRoute('/api/myendpoint')({
 ```
 
 **Option 2: oRPC Procedure with Effect (Preferred)**
+
 ```typescript
 // src/orpc/router/myfeature.ts
 import { os } from '@orpc/server'
-import { Schema } from '@effect/schema'
+import { Schema } from 'effect'
 
 const MyInputSchema = Schema.Struct({
   // define fields using Effect Schema
 })
 
 export const myProcedure = os
-  .input(MyInputSchema)
+  .input(Schema.standardSchemaV1(MyInputSchema))
   .handler(({ input }) => {
     // procedure logic
   })
 ```
+
+**Important:** oRPC expects Standard Schema V1 format, so wrap Effect schemas with `Schema.standardSchemaV1()`
 
 ### Isomorphic Code
 
@@ -212,13 +219,62 @@ src/domains/
   - Types: cleaning, gardening, security
   - Core properties: name, type, status, description, capabilities, metadata
 
-## Migration Notes
+## Standard Schema Integration
 
-- **Zod to Effect**: All existing Zod schemas should be migrated to Effect Schema
-- Current files using Zod that need migration:
-  - `src/env.ts` (environment validation)
-  - `src/orpc/router/todos.ts` (example procedures)
-  - Any other files importing from 'zod'
+This project uses **Effect Schema** for all schema validation. Effect Schema implements the [Standard Schema V1 specification](https://standardschema.dev/), which enables interoperability with libraries like oRPC and TanStack Form.
+
+### Using Effect Schema with oRPC
+
+oRPC procedures require Standard Schema V1 format. Wrap your Effect schemas:
+
+```typescript
+import { os } from '@orpc/server'
+import { Schema } from 'effect'
+
+const InputSchema = Schema.Struct({
+  name: Schema.String,
+  age: Schema.Number.pipe(Schema.int(), Schema.greaterThan(0))
+})
+
+export const myProcedure = os
+  .input(Schema.standardSchemaV1(InputSchema))
+  .handler(({ input }) => {
+    // input is fully typed and validated
+    return { success: true }
+  })
+```
+
+### Using Effect Schema with TanStack Form
+
+TanStack Form natively supports Standard Schema V1:
+
+```typescript
+import { Schema } from 'effect'
+
+const formSchema = Schema.standardSchemaV1(
+  Schema.Struct({
+    email: Schema.String.pipe(Schema.nonEmptyString()),
+    password: Schema.String.pipe(
+      Schema.minLength(8),
+      Schema.annotations({ message: () => "Password must be at least 8 characters" })
+    )
+  })
+)
+
+// Use in TanStack Form validators
+const form = useForm({
+  validators: {
+    onBlur: formSchema
+  }
+})
+```
+
+### Exceptions: Libraries Requiring Zod
+
+Some libraries are tightly coupled to Zod and cannot use Standard Schema:
+
+- **MCP SDK** (`@modelcontextprotocol/sdk`) - Requires Zod types for tool registration
+- Keep these files using Zod, typically in demo/example code
 
 ## Demo App
 
