@@ -1,6 +1,6 @@
-import { addTodo, listTodos } from './todos'
+// Main oRPC router for GadgetBot application
+// Demo procedures moved to /src/demo/orpc/router/
 
 export default {
-  listTodos,
-  addTodo,
+	// Add your GadgetBot oRPC procedures here
 }

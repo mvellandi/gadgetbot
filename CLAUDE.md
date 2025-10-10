@@ -38,9 +38,10 @@ npm run test             # Run all tests with Vitest
 ### Routing System (File-Based)
 
 - Routes live in `src/routes/` and are auto-generated into `src/routeTree.gen.ts`
-- Root layout: `src/routes/__root.tsx` contains shell with Header and devtools
+- Root layout: `src/routes/__root.tsx` contains the application shell with devtools
 - Route files can export server handlers for API endpoints
 - Router setup: `src/router.tsx` integrates TanStack Query SSR
+- Demo routes: All demo routes are under `/demo` path with their own layout
 
 ### oRPC Integration (Type-Safe RPC)
 
@@ -278,7 +279,74 @@ Some libraries are tightly coupled to Zod and cannot use Standard Schema:
 
 ## Demo App
 
-A secondary demo application is available at the `/demo` route showcasing TanStack features and patterns. Files and routes prefixed with `demo` are part of this reference application and can be reviewed for implementation examples when building the GadgetBot service.
+A comprehensive demo application is available at the `/demo` route showcasing TanStack features and patterns. The demo is completely isolated from the main GadgetBot application.
+
+### Demo Structure
+
+All demo code lives in `/src/demo/` and `/src/routes/demo/`:
+
+```
+/src/demo/
+  /components/          # Demo-specific components
+    Header.tsx         # Demo navigation with all demo links
+    FormComponents.tsx # TanStack Form component examples
+  /data/
+    punk-songs.ts      # Sample data for SSR demos
+  /hooks/
+    form-context.ts    # Form context for TanStack Form demos
+    form.ts           # Form hook configuration
+  /orpc/
+    /router/
+      todos.ts        # Demo oRPC procedures
+      index.ts        # Demo router exports
+    client.ts         # Demo oRPC client (separate from main app)
+  /utils/
+    mcp-handler.ts    # MCP request handling utilities
+  mcp-todos.ts        # MCP todos logic and state
+
+/src/routes/demo/
+  index.tsx           # Demo homepage (TanStack Start landing)
+  api.$.ts            # OpenAPI/oRPC playground endpoint
+  api.rpc.$.ts        # Demo oRPC endpoint
+  mcp.ts              # MCP server endpoint
+  orpc-todo.tsx       # oRPC todo list example
+  tanstack-query.tsx  # TanStack Query examples
+  form.simple.tsx     # Simple form example
+  form.address.tsx    # Complex form example
+  start.server-funcs.tsx      # Server functions demo
+  start.api-request.tsx       # API request demo
+  start.ssr.index.tsx         # SSR overview
+  start.ssr.spa-mode.tsx      # SPA mode demo
+  start.ssr.full-ssr.tsx      # Full SSR demo
+  start.ssr.data-only.tsx     # Data-only SSR demo
+  api.mcp-todos.ts            # MCP todos API endpoint
+  api.names.ts                # Names API example
+  mcp-todos.tsx               # MCP todos UI
+
+/src/routes/demo.tsx  # Demo layout with Header
+
+```
+
+### Demo Features
+
+The demo showcases:
+- **TanStack Start**: Server functions, SSR modes (SPA, Full SSR, Data-only)
+- **TanStack Query**: Data fetching, caching, mutations
+- **TanStack Form**: Simple and complex forms with validation
+- **oRPC**: Type-safe RPC with Effect schemas, separate from main app router
+- **MCP (Model Context Protocol)**: Tool registration and resource handling
+- **Real-time**: Server-sent events for live updates
+
+### Using Demo Code as Reference
+
+When building GadgetBot features, you can reference demo implementations for:
+- Setting up oRPC procedures with Effect Schema
+- Implementing SSR strategies
+- Creating forms with TanStack Form
+- Integrating TanStack Query for data fetching
+- Using server functions for server-side logic
+
+The demo has its own isolated oRPC router and client, so it won't interfere with your main application's API.
 
 ## Cursor Rules
 

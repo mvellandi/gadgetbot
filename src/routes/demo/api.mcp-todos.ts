@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 
-import { addTodo, getTodos, subscribeToTodos } from '@/mcp-todos'
+import { addTodo, getTodos, subscribeToTodos } from '@/demo/mcp-todos'
 
 export const Route = createFileRoute('/demo/api/mcp-todos')({
   server: {

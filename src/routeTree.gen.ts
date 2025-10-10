@@ -9,12 +9,13 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as McpRouteImport } from './routes/mcp'
+import { Route as DemoRouteImport } from './routes/demo'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DemoIndexRouteImport } from './routes/demo/index'
 import { Route as DemoTanstackQueryRouteImport } from './routes/demo/tanstack-query'
 import { Route as DemoOrpcTodoRouteImport } from './routes/demo/orpc-todo'
 import { Route as DemoMcpTodosRouteImport } from './routes/demo/mcp-todos'
-import { Route as ApiSplatRouteImport } from './routes/api.$'
+import { Route as DemoMcpRouteImport } from './routes/demo/mcp'
 import { Route as DemoStartServerFuncsRouteImport } from './routes/demo/start.server-funcs'
 import { Route as DemoStartApiRequestRouteImport } from './routes/demo/start.api-request'
 import { Route as DemoFormSimpleRouteImport } from './routes/demo/form.simple'
@@ -22,15 +23,17 @@ import { Route as DemoFormAddressRouteImport } from './routes/demo/form.address'
 import { Route as DemoApiTqTodosRouteImport } from './routes/demo/api.tq-todos'
 import { Route as DemoApiNamesRouteImport } from './routes/demo/api.names'
 import { Route as DemoApiMcpTodosRouteImport } from './routes/demo/api.mcp-todos'
+import { Route as DemoApiSplatRouteImport } from './routes/demo/api.$'
 import { Route as ApiRpcSplatRouteImport } from './routes/api.rpc.$'
 import { Route as DemoStartSsrIndexRouteImport } from './routes/demo/start.ssr.index'
 import { Route as DemoStartSsrSpaModeRouteImport } from './routes/demo/start.ssr.spa-mode'
 import { Route as DemoStartSsrFullSsrRouteImport } from './routes/demo/start.ssr.full-ssr'
 import { Route as DemoStartSsrDataOnlyRouteImport } from './routes/demo/start.ssr.data-only'
+import { Route as DemoApiRpcSplatRouteImport } from './routes/demo/api.rpc.$'
 
-const McpRoute = McpRouteImport.update({
-  id: '/mcp',
-  path: '/mcp',
+const DemoRoute = DemoRouteImport.update({
+  id: '/demo',
+  path: '/demo',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -38,60 +41,70 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DemoIndexRoute = DemoIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => DemoRoute,
+} as any)
 const DemoTanstackQueryRoute = DemoTanstackQueryRouteImport.update({
-  id: '/demo/tanstack-query',
-  path: '/demo/tanstack-query',
-  getParentRoute: () => rootRouteImport,
+  id: '/tanstack-query',
+  path: '/tanstack-query',
+  getParentRoute: () => DemoRoute,
 } as any)
 const DemoOrpcTodoRoute = DemoOrpcTodoRouteImport.update({
-  id: '/demo/orpc-todo',
-  path: '/demo/orpc-todo',
-  getParentRoute: () => rootRouteImport,
+  id: '/orpc-todo',
+  path: '/orpc-todo',
+  getParentRoute: () => DemoRoute,
 } as any)
 const DemoMcpTodosRoute = DemoMcpTodosRouteImport.update({
-  id: '/demo/mcp-todos',
-  path: '/demo/mcp-todos',
-  getParentRoute: () => rootRouteImport,
+  id: '/mcp-todos',
+  path: '/mcp-todos',
+  getParentRoute: () => DemoRoute,
 } as any)
-const ApiSplatRoute = ApiSplatRouteImport.update({
-  id: '/api/$',
-  path: '/api/$',
-  getParentRoute: () => rootRouteImport,
+const DemoMcpRoute = DemoMcpRouteImport.update({
+  id: '/mcp',
+  path: '/mcp',
+  getParentRoute: () => DemoRoute,
 } as any)
 const DemoStartServerFuncsRoute = DemoStartServerFuncsRouteImport.update({
-  id: '/demo/start/server-funcs',
-  path: '/demo/start/server-funcs',
-  getParentRoute: () => rootRouteImport,
+  id: '/start/server-funcs',
+  path: '/start/server-funcs',
+  getParentRoute: () => DemoRoute,
 } as any)
 const DemoStartApiRequestRoute = DemoStartApiRequestRouteImport.update({
-  id: '/demo/start/api-request',
-  path: '/demo/start/api-request',
-  getParentRoute: () => rootRouteImport,
+  id: '/start/api-request',
+  path: '/start/api-request',
+  getParentRoute: () => DemoRoute,
 } as any)
 const DemoFormSimpleRoute = DemoFormSimpleRouteImport.update({
-  id: '/demo/form/simple',
-  path: '/demo/form/simple',
-  getParentRoute: () => rootRouteImport,
+  id: '/form/simple',
+  path: '/form/simple',
+  getParentRoute: () => DemoRoute,
 } as any)
 const DemoFormAddressRoute = DemoFormAddressRouteImport.update({
-  id: '/demo/form/address',
-  path: '/demo/form/address',
-  getParentRoute: () => rootRouteImport,
+  id: '/form/address',
+  path: '/form/address',
+  getParentRoute: () => DemoRoute,
 } as any)
 const DemoApiTqTodosRoute = DemoApiTqTodosRouteImport.update({
-  id: '/demo/api/tq-todos',
-  path: '/demo/api/tq-todos',
-  getParentRoute: () => rootRouteImport,
+  id: '/api/tq-todos',
+  path: '/api/tq-todos',
+  getParentRoute: () => DemoRoute,
 } as any)
 const DemoApiNamesRoute = DemoApiNamesRouteImport.update({
-  id: '/demo/api/names',
-  path: '/demo/api/names',
-  getParentRoute: () => rootRouteImport,
+  id: '/api/names',
+  path: '/api/names',
+  getParentRoute: () => DemoRoute,
 } as any)
 const DemoApiMcpTodosRoute = DemoApiMcpTodosRouteImport.update({
-  id: '/demo/api/mcp-todos',
-  path: '/demo/api/mcp-todos',
-  getParentRoute: () => rootRouteImport,
+  id: '/api/mcp-todos',
+  path: '/api/mcp-todos',
+  getParentRoute: () => DemoRoute,
+} as any)
+const DemoApiSplatRoute = DemoApiSplatRouteImport.update({
+  id: '/api/$',
+  path: '/api/$',
+  getParentRoute: () => DemoRoute,
 } as any)
 const ApiRpcSplatRoute = ApiRpcSplatRouteImport.update({
   id: '/api/rpc/$',
@@ -99,34 +112,41 @@ const ApiRpcSplatRoute = ApiRpcSplatRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const DemoStartSsrIndexRoute = DemoStartSsrIndexRouteImport.update({
-  id: '/demo/start/ssr/',
-  path: '/demo/start/ssr/',
-  getParentRoute: () => rootRouteImport,
+  id: '/start/ssr/',
+  path: '/start/ssr/',
+  getParentRoute: () => DemoRoute,
 } as any)
 const DemoStartSsrSpaModeRoute = DemoStartSsrSpaModeRouteImport.update({
-  id: '/demo/start/ssr/spa-mode',
-  path: '/demo/start/ssr/spa-mode',
-  getParentRoute: () => rootRouteImport,
+  id: '/start/ssr/spa-mode',
+  path: '/start/ssr/spa-mode',
+  getParentRoute: () => DemoRoute,
 } as any)
 const DemoStartSsrFullSsrRoute = DemoStartSsrFullSsrRouteImport.update({
-  id: '/demo/start/ssr/full-ssr',
-  path: '/demo/start/ssr/full-ssr',
-  getParentRoute: () => rootRouteImport,
+  id: '/start/ssr/full-ssr',
+  path: '/start/ssr/full-ssr',
+  getParentRoute: () => DemoRoute,
 } as any)
 const DemoStartSsrDataOnlyRoute = DemoStartSsrDataOnlyRouteImport.update({
-  id: '/demo/start/ssr/data-only',
-  path: '/demo/start/ssr/data-only',
-  getParentRoute: () => rootRouteImport,
+  id: '/start/ssr/data-only',
+  path: '/start/ssr/data-only',
+  getParentRoute: () => DemoRoute,
+} as any)
+const DemoApiRpcSplatRoute = DemoApiRpcSplatRouteImport.update({
+  id: '/api/rpc/$',
+  path: '/api/rpc/$',
+  getParentRoute: () => DemoRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/mcp': typeof McpRoute
-  '/api/$': typeof ApiSplatRoute
+  '/demo': typeof DemoRouteWithChildren
+  '/demo/mcp': typeof DemoMcpRoute
   '/demo/mcp-todos': typeof DemoMcpTodosRoute
   '/demo/orpc-todo': typeof DemoOrpcTodoRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
+  '/demo/': typeof DemoIndexRoute
   '/api/rpc/$': typeof ApiRpcSplatRoute
+  '/demo/api/$': typeof DemoApiSplatRoute
   '/demo/api/mcp-todos': typeof DemoApiMcpTodosRoute
   '/demo/api/names': typeof DemoApiNamesRoute
   '/demo/api/tq-todos': typeof DemoApiTqTodosRoute
@@ -134,6 +154,7 @@ export interface FileRoutesByFullPath {
   '/demo/form/simple': typeof DemoFormSimpleRoute
   '/demo/start/api-request': typeof DemoStartApiRequestRoute
   '/demo/start/server-funcs': typeof DemoStartServerFuncsRoute
+  '/demo/api/rpc/$': typeof DemoApiRpcSplatRoute
   '/demo/start/ssr/data-only': typeof DemoStartSsrDataOnlyRoute
   '/demo/start/ssr/full-ssr': typeof DemoStartSsrFullSsrRoute
   '/demo/start/ssr/spa-mode': typeof DemoStartSsrSpaModeRoute
@@ -141,12 +162,13 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/mcp': typeof McpRoute
-  '/api/$': typeof ApiSplatRoute
+  '/demo/mcp': typeof DemoMcpRoute
   '/demo/mcp-todos': typeof DemoMcpTodosRoute
   '/demo/orpc-todo': typeof DemoOrpcTodoRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
+  '/demo': typeof DemoIndexRoute
   '/api/rpc/$': typeof ApiRpcSplatRoute
+  '/demo/api/$': typeof DemoApiSplatRoute
   '/demo/api/mcp-todos': typeof DemoApiMcpTodosRoute
   '/demo/api/names': typeof DemoApiNamesRoute
   '/demo/api/tq-todos': typeof DemoApiTqTodosRoute
@@ -154,6 +176,7 @@ export interface FileRoutesByTo {
   '/demo/form/simple': typeof DemoFormSimpleRoute
   '/demo/start/api-request': typeof DemoStartApiRequestRoute
   '/demo/start/server-funcs': typeof DemoStartServerFuncsRoute
+  '/demo/api/rpc/$': typeof DemoApiRpcSplatRoute
   '/demo/start/ssr/data-only': typeof DemoStartSsrDataOnlyRoute
   '/demo/start/ssr/full-ssr': typeof DemoStartSsrFullSsrRoute
   '/demo/start/ssr/spa-mode': typeof DemoStartSsrSpaModeRoute
@@ -162,12 +185,14 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/mcp': typeof McpRoute
-  '/api/$': typeof ApiSplatRoute
+  '/demo': typeof DemoRouteWithChildren
+  '/demo/mcp': typeof DemoMcpRoute
   '/demo/mcp-todos': typeof DemoMcpTodosRoute
   '/demo/orpc-todo': typeof DemoOrpcTodoRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
+  '/demo/': typeof DemoIndexRoute
   '/api/rpc/$': typeof ApiRpcSplatRoute
+  '/demo/api/$': typeof DemoApiSplatRoute
   '/demo/api/mcp-todos': typeof DemoApiMcpTodosRoute
   '/demo/api/names': typeof DemoApiNamesRoute
   '/demo/api/tq-todos': typeof DemoApiTqTodosRoute
@@ -175,6 +200,7 @@ export interface FileRoutesById {
   '/demo/form/simple': typeof DemoFormSimpleRoute
   '/demo/start/api-request': typeof DemoStartApiRequestRoute
   '/demo/start/server-funcs': typeof DemoStartServerFuncsRoute
+  '/demo/api/rpc/$': typeof DemoApiRpcSplatRoute
   '/demo/start/ssr/data-only': typeof DemoStartSsrDataOnlyRoute
   '/demo/start/ssr/full-ssr': typeof DemoStartSsrFullSsrRoute
   '/demo/start/ssr/spa-mode': typeof DemoStartSsrSpaModeRoute
@@ -184,12 +210,14 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/mcp'
-    | '/api/$'
+    | '/demo'
+    | '/demo/mcp'
     | '/demo/mcp-todos'
     | '/demo/orpc-todo'
     | '/demo/tanstack-query'
+    | '/demo/'
     | '/api/rpc/$'
+    | '/demo/api/$'
     | '/demo/api/mcp-todos'
     | '/demo/api/names'
     | '/demo/api/tq-todos'
@@ -197,6 +225,7 @@ export interface FileRouteTypes {
     | '/demo/form/simple'
     | '/demo/start/api-request'
     | '/demo/start/server-funcs'
+    | '/demo/api/rpc/$'
     | '/demo/start/ssr/data-only'
     | '/demo/start/ssr/full-ssr'
     | '/demo/start/ssr/spa-mode'
@@ -204,12 +233,13 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/mcp'
-    | '/api/$'
+    | '/demo/mcp'
     | '/demo/mcp-todos'
     | '/demo/orpc-todo'
     | '/demo/tanstack-query'
+    | '/demo'
     | '/api/rpc/$'
+    | '/demo/api/$'
     | '/demo/api/mcp-todos'
     | '/demo/api/names'
     | '/demo/api/tq-todos'
@@ -217,6 +247,7 @@ export interface FileRouteTypes {
     | '/demo/form/simple'
     | '/demo/start/api-request'
     | '/demo/start/server-funcs'
+    | '/demo/api/rpc/$'
     | '/demo/start/ssr/data-only'
     | '/demo/start/ssr/full-ssr'
     | '/demo/start/ssr/spa-mode'
@@ -224,12 +255,14 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
-    | '/mcp'
-    | '/api/$'
+    | '/demo'
+    | '/demo/mcp'
     | '/demo/mcp-todos'
     | '/demo/orpc-todo'
     | '/demo/tanstack-query'
+    | '/demo/'
     | '/api/rpc/$'
+    | '/demo/api/$'
     | '/demo/api/mcp-todos'
     | '/demo/api/names'
     | '/demo/api/tq-todos'
@@ -237,6 +270,7 @@ export interface FileRouteTypes {
     | '/demo/form/simple'
     | '/demo/start/api-request'
     | '/demo/start/server-funcs'
+    | '/demo/api/rpc/$'
     | '/demo/start/ssr/data-only'
     | '/demo/start/ssr/full-ssr'
     | '/demo/start/ssr/spa-mode'
@@ -245,32 +279,17 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  McpRoute: typeof McpRoute
-  ApiSplatRoute: typeof ApiSplatRoute
-  DemoMcpTodosRoute: typeof DemoMcpTodosRoute
-  DemoOrpcTodoRoute: typeof DemoOrpcTodoRoute
-  DemoTanstackQueryRoute: typeof DemoTanstackQueryRoute
+  DemoRoute: typeof DemoRouteWithChildren
   ApiRpcSplatRoute: typeof ApiRpcSplatRoute
-  DemoApiMcpTodosRoute: typeof DemoApiMcpTodosRoute
-  DemoApiNamesRoute: typeof DemoApiNamesRoute
-  DemoApiTqTodosRoute: typeof DemoApiTqTodosRoute
-  DemoFormAddressRoute: typeof DemoFormAddressRoute
-  DemoFormSimpleRoute: typeof DemoFormSimpleRoute
-  DemoStartApiRequestRoute: typeof DemoStartApiRequestRoute
-  DemoStartServerFuncsRoute: typeof DemoStartServerFuncsRoute
-  DemoStartSsrDataOnlyRoute: typeof DemoStartSsrDataOnlyRoute
-  DemoStartSsrFullSsrRoute: typeof DemoStartSsrFullSsrRoute
-  DemoStartSsrSpaModeRoute: typeof DemoStartSsrSpaModeRoute
-  DemoStartSsrIndexRoute: typeof DemoStartSsrIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/mcp': {
-      id: '/mcp'
-      path: '/mcp'
-      fullPath: '/mcp'
-      preLoaderRoute: typeof McpRouteImport
+    '/demo': {
+      id: '/demo'
+      path: '/demo'
+      fullPath: '/demo'
+      preLoaderRoute: typeof DemoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -280,82 +299,96 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/demo/': {
+      id: '/demo/'
+      path: '/'
+      fullPath: '/demo/'
+      preLoaderRoute: typeof DemoIndexRouteImport
+      parentRoute: typeof DemoRoute
+    }
     '/demo/tanstack-query': {
       id: '/demo/tanstack-query'
-      path: '/demo/tanstack-query'
+      path: '/tanstack-query'
       fullPath: '/demo/tanstack-query'
       preLoaderRoute: typeof DemoTanstackQueryRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof DemoRoute
     }
     '/demo/orpc-todo': {
       id: '/demo/orpc-todo'
-      path: '/demo/orpc-todo'
+      path: '/orpc-todo'
       fullPath: '/demo/orpc-todo'
       preLoaderRoute: typeof DemoOrpcTodoRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof DemoRoute
     }
     '/demo/mcp-todos': {
       id: '/demo/mcp-todos'
-      path: '/demo/mcp-todos'
+      path: '/mcp-todos'
       fullPath: '/demo/mcp-todos'
       preLoaderRoute: typeof DemoMcpTodosRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof DemoRoute
     }
-    '/api/$': {
-      id: '/api/$'
-      path: '/api/$'
-      fullPath: '/api/$'
-      preLoaderRoute: typeof ApiSplatRouteImport
-      parentRoute: typeof rootRouteImport
+    '/demo/mcp': {
+      id: '/demo/mcp'
+      path: '/mcp'
+      fullPath: '/demo/mcp'
+      preLoaderRoute: typeof DemoMcpRouteImport
+      parentRoute: typeof DemoRoute
     }
     '/demo/start/server-funcs': {
       id: '/demo/start/server-funcs'
-      path: '/demo/start/server-funcs'
+      path: '/start/server-funcs'
       fullPath: '/demo/start/server-funcs'
       preLoaderRoute: typeof DemoStartServerFuncsRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof DemoRoute
     }
     '/demo/start/api-request': {
       id: '/demo/start/api-request'
-      path: '/demo/start/api-request'
+      path: '/start/api-request'
       fullPath: '/demo/start/api-request'
       preLoaderRoute: typeof DemoStartApiRequestRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof DemoRoute
     }
     '/demo/form/simple': {
       id: '/demo/form/simple'
-      path: '/demo/form/simple'
+      path: '/form/simple'
       fullPath: '/demo/form/simple'
       preLoaderRoute: typeof DemoFormSimpleRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof DemoRoute
     }
     '/demo/form/address': {
       id: '/demo/form/address'
-      path: '/demo/form/address'
+      path: '/form/address'
       fullPath: '/demo/form/address'
       preLoaderRoute: typeof DemoFormAddressRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof DemoRoute
     }
     '/demo/api/tq-todos': {
       id: '/demo/api/tq-todos'
-      path: '/demo/api/tq-todos'
+      path: '/api/tq-todos'
       fullPath: '/demo/api/tq-todos'
       preLoaderRoute: typeof DemoApiTqTodosRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof DemoRoute
     }
     '/demo/api/names': {
       id: '/demo/api/names'
-      path: '/demo/api/names'
+      path: '/api/names'
       fullPath: '/demo/api/names'
       preLoaderRoute: typeof DemoApiNamesRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof DemoRoute
     }
     '/demo/api/mcp-todos': {
       id: '/demo/api/mcp-todos'
-      path: '/demo/api/mcp-todos'
+      path: '/api/mcp-todos'
       fullPath: '/demo/api/mcp-todos'
       preLoaderRoute: typeof DemoApiMcpTodosRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof DemoRoute
+    }
+    '/demo/api/$': {
+      id: '/demo/api/$'
+      path: '/api/$'
+      fullPath: '/demo/api/$'
+      preLoaderRoute: typeof DemoApiSplatRouteImport
+      parentRoute: typeof DemoRoute
     }
     '/api/rpc/$': {
       id: '/api/rpc/$'
@@ -366,43 +399,70 @@ declare module '@tanstack/react-router' {
     }
     '/demo/start/ssr/': {
       id: '/demo/start/ssr/'
-      path: '/demo/start/ssr'
+      path: '/start/ssr'
       fullPath: '/demo/start/ssr'
       preLoaderRoute: typeof DemoStartSsrIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof DemoRoute
     }
     '/demo/start/ssr/spa-mode': {
       id: '/demo/start/ssr/spa-mode'
-      path: '/demo/start/ssr/spa-mode'
+      path: '/start/ssr/spa-mode'
       fullPath: '/demo/start/ssr/spa-mode'
       preLoaderRoute: typeof DemoStartSsrSpaModeRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof DemoRoute
     }
     '/demo/start/ssr/full-ssr': {
       id: '/demo/start/ssr/full-ssr'
-      path: '/demo/start/ssr/full-ssr'
+      path: '/start/ssr/full-ssr'
       fullPath: '/demo/start/ssr/full-ssr'
       preLoaderRoute: typeof DemoStartSsrFullSsrRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof DemoRoute
     }
     '/demo/start/ssr/data-only': {
       id: '/demo/start/ssr/data-only'
-      path: '/demo/start/ssr/data-only'
+      path: '/start/ssr/data-only'
       fullPath: '/demo/start/ssr/data-only'
       preLoaderRoute: typeof DemoStartSsrDataOnlyRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof DemoRoute
+    }
+    '/demo/api/rpc/$': {
+      id: '/demo/api/rpc/$'
+      path: '/api/rpc/$'
+      fullPath: '/demo/api/rpc/$'
+      preLoaderRoute: typeof DemoApiRpcSplatRouteImport
+      parentRoute: typeof DemoRoute
     }
   }
 }
 
-const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  McpRoute: McpRoute,
-  ApiSplatRoute: ApiSplatRoute,
+interface DemoRouteChildren {
+  DemoMcpRoute: typeof DemoMcpRoute
+  DemoMcpTodosRoute: typeof DemoMcpTodosRoute
+  DemoOrpcTodoRoute: typeof DemoOrpcTodoRoute
+  DemoTanstackQueryRoute: typeof DemoTanstackQueryRoute
+  DemoIndexRoute: typeof DemoIndexRoute
+  DemoApiSplatRoute: typeof DemoApiSplatRoute
+  DemoApiMcpTodosRoute: typeof DemoApiMcpTodosRoute
+  DemoApiNamesRoute: typeof DemoApiNamesRoute
+  DemoApiTqTodosRoute: typeof DemoApiTqTodosRoute
+  DemoFormAddressRoute: typeof DemoFormAddressRoute
+  DemoFormSimpleRoute: typeof DemoFormSimpleRoute
+  DemoStartApiRequestRoute: typeof DemoStartApiRequestRoute
+  DemoStartServerFuncsRoute: typeof DemoStartServerFuncsRoute
+  DemoApiRpcSplatRoute: typeof DemoApiRpcSplatRoute
+  DemoStartSsrDataOnlyRoute: typeof DemoStartSsrDataOnlyRoute
+  DemoStartSsrFullSsrRoute: typeof DemoStartSsrFullSsrRoute
+  DemoStartSsrSpaModeRoute: typeof DemoStartSsrSpaModeRoute
+  DemoStartSsrIndexRoute: typeof DemoStartSsrIndexRoute
+}
+
+const DemoRouteChildren: DemoRouteChildren = {
+  DemoMcpRoute: DemoMcpRoute,
   DemoMcpTodosRoute: DemoMcpTodosRoute,
   DemoOrpcTodoRoute: DemoOrpcTodoRoute,
   DemoTanstackQueryRoute: DemoTanstackQueryRoute,
-  ApiRpcSplatRoute: ApiRpcSplatRoute,
+  DemoIndexRoute: DemoIndexRoute,
+  DemoApiSplatRoute: DemoApiSplatRoute,
   DemoApiMcpTodosRoute: DemoApiMcpTodosRoute,
   DemoApiNamesRoute: DemoApiNamesRoute,
   DemoApiTqTodosRoute: DemoApiTqTodosRoute,
@@ -410,10 +470,19 @@ const rootRouteChildren: RootRouteChildren = {
   DemoFormSimpleRoute: DemoFormSimpleRoute,
   DemoStartApiRequestRoute: DemoStartApiRequestRoute,
   DemoStartServerFuncsRoute: DemoStartServerFuncsRoute,
+  DemoApiRpcSplatRoute: DemoApiRpcSplatRoute,
   DemoStartSsrDataOnlyRoute: DemoStartSsrDataOnlyRoute,
   DemoStartSsrFullSsrRoute: DemoStartSsrFullSsrRoute,
   DemoStartSsrSpaModeRoute: DemoStartSsrSpaModeRoute,
   DemoStartSsrIndexRoute: DemoStartSsrIndexRoute,
+}
+
+const DemoRouteWithChildren = DemoRoute._addFileChildren(DemoRouteChildren)
+
+const rootRouteChildren: RootRouteChildren = {
+  IndexRoute: IndexRoute,
+  DemoRoute: DemoRouteWithChildren,
+  ApiRpcSplatRoute: ApiRpcSplatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

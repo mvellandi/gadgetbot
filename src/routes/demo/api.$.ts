@@ -8,7 +8,7 @@ import { onError } from '@orpc/server'
 import { OpenAPIReferencePlugin } from '@orpc/openapi/plugins'
 
 import { TodoSchema } from '@/orpc/schema'
-import router from '@/orpc/router'
+import router from '@/demo/orpc/router'
 
 const handler = new OpenAPIHandler(router, {
   interceptors: [
@@ -63,7 +63,7 @@ async function handle({ request }: { request: Request }) {
   return response ?? new Response('Not Found', { status: 404 })
 }
 
-export const Route = createFileRoute('/api/$')({
+export const Route = createFileRoute('/demo/api/$')({
   server: {
     handlers: {
       HEAD: handle,

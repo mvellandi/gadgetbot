@@ -2,7 +2,7 @@ import { useCallback, useState } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
 import { useMutation, useQuery } from '@tanstack/react-query'
 
-import { orpc } from '@/orpc/client'
+import { orpc } from '@/demo/orpc/client'
 
 export const Route = createFileRoute('/demo/orpc-todo')({
   component: ORPCTodos,
@@ -24,7 +24,7 @@ function ORPCTodos() {
 
   const [todo, setTodo] = useState('')
   const { mutate: addTodo } = useMutation({
-    mutationFn: orpc.addTodo.call,
+    mutationFn: (input: { name: string }) => orpc.addTodo.call(input),
     onSuccess: () => {
       refetch()
       setTodo('')
