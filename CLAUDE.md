@@ -2,6 +2,73 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Table of Contents
+
+- [Quick Start](#quick-start)
+- [Project Overview](#project-overview)
+- [Development Commands](#development-commands)
+- [Architecture Overview](#architecture-overview)
+  - [Current Structure](#current-structure)
+  - [Planned Multi-Client Structure](#planned-multi-client-structure)
+  - [Migration Guide](#migration-guide)
+  - [Routing System](#routing-system-file-based)
+  - [oRPC Integration](#orpc-integration-type-safe-rpc)
+  - [Effect Integration](#effect-integration)
+  - [State Management](#state-management-web-specific)
+  - [Database Layer](#database-layer-postgresql--drizzle--effect)
+  - [Environment Variables](#environment-variables)
+  - [Styling](#styling-web-specific)
+  - [Code Quality](#code-quality)
+  - [Polyfills](#polyfills)
+- [Important Patterns](#important-patterns)
+  - [Creating API Endpoints](#creating-api-endpoints)
+  - [Effect Error Handling](#effect-error-handling)
+  - [Testing Patterns](#testing-patterns)
+  - [Domain-Driven Design](#domain-driven-design-inspired-by-elixir-ash)
+- [Standard Schema Integration](#standard-schema-integration)
+- [Multi-Client Architecture Benefits](#multi-client-architecture-benefits)
+- [Troubleshooting](#troubleshooting)
+- [Appendix](#appendix)
+  - [Demo App](#demo-app)
+  - [Cursor Rules](#cursor-rules)
+
+---
+
+## Quick Start
+
+New to this project? Get up and running in 5 minutes:
+
+```bash
+# 1. Install dependencies
+npm install
+
+# 2. Start PostgreSQL database
+npm run docker:up
+
+# 3. Run migrations and seed data
+npm run db:migrate
+npm run db:seed
+
+# 4. Start development server
+npm run dev
+
+# 5. Open browser to http://localhost:3000
+```
+
+**Try the REPL** (for testing domain operations):
+```bash
+npm run repl
+> const Products = await import('./src/domains/products.js')
+> await Products.GadgetBot.findAll()
+```
+
+**Common First Tasks:**
+- Add a Shadcn component: `pnpx shadcn@latest add button`
+- Create an oRPC procedure: See [Creating API Endpoints](#creating-api-endpoints)
+- Test database operations: Use `npm run repl` or `npm run db:studio`
+
+---
+
 ## Project Overview
 
 This is a TanStack Start (RC version) web application for a "GadgetBot" rental service (inspired by Ratchet & Clank). The project uses:
@@ -48,32 +115,195 @@ npm run repl             # Start Node REPL with pre-loaded modules
 
 ## Architecture Overview
 
+> **TL;DR**: This project uses a layered architecture where domains (business logic) and database are client-agnostic, while web/CLI/API clients consume them independently. See [Migration Guide](#migration-guide) for planned restructuring.
+
+### Current Structure
+
+The codebase is currently web-focused but organized to support multiple client types:
+
+```
+src/
+├── domains/          # Domain logic (client-agnostic)
+├── db/              # Database layer (client-agnostic)
+├── orpc/            # API procedures (client-agnostic router)
+├── routes/          # Web routes (TanStack Start) ⚠️ Will move
+├── components/      # Web components ⚠️ Will move
+├── integrations/    # Web integrations ⚠️ Will move
+├── lib/            # Web utilities ⚠️ Will move
+└── ...             # Other web-specific code
+```
+
+**Key Characteristics:**
+- Domain layer (`domains/`, `db/`) is already client-agnostic
+- Web-specific code (routes, components) is at root level
+- CLI exists but shares space with web code
+- Migration needed to fully separate concerns
+
+### Planned Multi-Client Structure
+
+The target architecture cleanly separates client-specific code:
+
+```
+src/
+├── domains/         # Domain layer (client-agnostic)
+│   └── products/
+├── db/             # Database layer (client-agnostic)
+│   ├── schema/
+│   ├── services/
+│   └── migrations/
+├── cli/            # CLI interface (Node.js)
+│   ├── repl.ts
+│   └── commands/
+├── orpc/           # API router (client-agnostic)
+│   ├── router/
+│   └── schema.ts
+├── web/            # Web client (React/TanStack) ✨ NEW
+│   ├── routes/
+│   ├── components/
+│   ├── integrations/
+│   ├── orpc/client.ts
+│   └── ...
+├── env.ts          # Shared config
+└── polyfill.ts     # Shared runtime
+```
+
+**Benefits:**
+- Web code isolated in `src/web/`
+- CLI can use domains without web dependencies
+- Future clients (mobile, desktop) have clear patterns to follow
+- Testability: core logic separate from UI
+
+See [Migration Guide](#migration-guide) below for implementation details.
+
+### Migration Guide
+
+This guide details moving web-specific code to `src/web/` while keeping infrastructure at root level.
+
+**Migration Goals:**
+1. Separate web-specific code (React, routes, components) into `src/web/`
+2. Keep infrastructure (domains, db, orpc router) at root level
+3. Enable CLI to use domains directly without web dependencies
+4. Support future clients (mobile, desktop) without coupling to web layer
+
+**What Moves to `src/web/`:**
+
+| Current Location | New Location | Description |
+|-----------------|--------------|-------------|
+| `src/routes/` | `src/web/routes/` | TanStack Start routes |
+| `src/components/` | `src/web/components/` | React components |
+| `src/integrations/` | `src/web/integrations/` | TanStack Query, etc. |
+| `src/orpc/client.ts` | `src/web/orpc/client.ts` | Web oRPC client only |
+| `src/lib/` | `src/web/lib/` | Web utilities |
+| `src/demo/` | `src/web/demo/` | Demo app |
+| `src/router.tsx` | `src/web/router.tsx` | Router setup |
+| `src/routeTree.gen.ts` | `src/web/routeTree.gen.ts` | Generated routes |
+| `src/styles.css` | `src/web/styles.css` | Styles |
+| `src/logo.svg` | `src/web/logo.svg` | Assets |
+
+**What Stays at Root:**
+
+- `src/domains/` - Client-agnostic domain logic
+- `src/db/` - Database schemas and services
+- `src/orpc/router/` - API procedures serving all clients
+- `src/orpc/schema.ts` - Shared API schemas
+- `src/env.ts` - Shared environment config
+- `src/polyfill.ts` - Shared runtime polyfills
+- `src/cli/` - CLI interface
+
+**Configuration Updates Required:**
+
+After migration, update these config files:
+
+**1. vite.config.ts** - Point TanStack Start plugin to new routes:
+```typescript
+tanstackStart({
+  routesDirectory: './src/web/routes',
+  generatedRouteTree: './src/web/routeTree.gen.ts',
+})
+```
+
+**2. tsconfig.json** - Add web-specific path aliases (optional):
+```json
+"paths": {
+  "@/*": ["./src/*"],
+  "@web/*": ["./src/web/*"]
+}
+```
+
+**3. components.json** - Update Shadcn paths:
+```json
+"aliases": {
+  "components": "@/web/components",
+  "utils": "@/web/lib/utils"
+}
+```
+
+**4. biome.json** - Update ignored files:
+```json
+"ignore": ["src/web/routeTree.gen.ts"]
+```
+
+**Migration Steps:**
+1. Create `src/web/` directory structure
+2. Move files according to table above
+3. Update imports in moved files (add `@web/` or adjust relative paths)
+4. Update configuration files
+5. Test that dev server, build, and CLI still work
+6. Update path references in [CLAUDE.md](CLAUDE.md) (this file)
+
 ### Routing System (File-Based)
 
-- Routes live in `src/routes/` and are auto-generated into `src/routeTree.gen.ts`
+> **Note**: After migration, routes will be in `src/web/routes/`. See [Migration Guide](#migration-guide).
+
+- Routes live in `src/routes/`
+- Auto-generated into `src/routeTree.gen.ts`
 - Root layout: `src/routes/__root.tsx` contains the application shell with devtools
 - Route files can export server handlers for API endpoints
 - Router setup: `src/router.tsx` integrates TanStack Query SSR
 - Demo routes: All demo routes are under `/demo` path with their own layout
 
+**Example Route:**
+```typescript
+// src/routes/products.tsx
+export const Route = createFileRoute('/products')({
+  loader: async ({ context }) => {
+    // Use TanStack Query via context.queryClient
+  },
+  component: ProductsPage,
+})
+```
+
 ### oRPC Integration (Type-Safe RPC)
 
-**Server Side:**
-- Procedures defined in `src/orpc/router/` (e.g., `todos.ts`)
-- Each procedure uses `os.input(schema).handler(fn)` pattern
-- Main router exports all procedures: `src/orpc/router/index.ts`
-- RPC endpoint: `src/routes/api.rpc.$.ts` handles all HTTP methods
+> **TL;DR**: oRPC provides type-safe RPC between clients and server. Router is client-agnostic; clients create their own connection method.
 
-**Client Side:**
-- Client creation: `src/orpc/client.ts` uses isomorphic pattern
-- Server: Direct router client with request headers
-- Client: Fetch-based RPC link to `/api/rpc`
-- TanStack Query integration via `createTanstackQueryUtils(client)`
+**Server Side (Client-Agnostic):**
+
+- **Procedures**: Defined in `src/orpc/router/` (e.g., `products.ts`, `todos.ts`)
+- **Pattern**: Each procedure uses `os.input(schema).handler(fn)`
+- **Main router**: `src/orpc/router/index.ts` exports all procedures
+- **Serves**: Web, CLI, and future JSON API clients
+- **HTTP endpoint**: `src/routes/api.rpc.$.ts`
+
+**Client Side (Web-Specific):**
+
+- **Client location**: `src/orpc/client.ts`
+- **Isomorphic pattern**: Server-side uses direct router, client-side uses fetch
+- **Server mode**: Direct router client with request headers
+- **Client mode**: Fetch-based RPC link to `/api/rpc`
+- **TanStack Query**: Integrated via `createTanstackQueryUtils(client)`
+
+**Architecture Note:**
+The oRPC router stays at `src/orpc/router/` (client-agnostic). Each client creates its own connection:
+- **Web**: Isomorphic client in `src/orpc/client.ts` (will move to `src/web/orpc/client.ts`)
+- **CLI**: Can use router directly or create custom client
+- **External APIs**: HTTP calls to `/api/rpc` endpoint
 
 **Adding New oRPC Procedures:**
+
 1. Create procedure in `src/orpc/router/your-feature.ts` using Effect schemas
 2. Export from `src/orpc/router/index.ts`
-3. Client automatically gets type-safe access via `client` export
+3. Web client automatically gets type-safe access via `client` export
 
 ### Effect Integration
 
@@ -127,11 +357,26 @@ const StandardMySchema = Schema.standardSchemaV1(MySchema)
   - `effect_docs_search` - Search Effect documentation
   - `get_effect_doc` - Get full documentation by ID
 
-### State Management
+### State Management (Web-Specific)
+
+> **Note**: This section applies to the web client only. CLI and other clients manage state differently.
 
 - **Server State**: TanStack Query via `src/integrations/tanstack-query/`
 - **Query Client**: Created in `root-provider.tsx`, integrated with router context
 - **oRPC + Query**: Use `orpc` utils from `src/orpc/client.ts` for type-safe queries
+- **Client State**: React hooks (useState, useReducer)
+- **Form State**: TanStack Form with Effect Schema validation
+
+**Example:**
+```typescript
+// Type-safe query with oRPC
+import { orpc } from '@/orpc/client'
+
+function ProductsList() {
+  const { data, isLoading } = orpc.products.list.useQuery()
+  // data is fully typed
+}
+```
 
 ### Database Layer (PostgreSQL + Drizzle + Effect)
 
@@ -269,12 +514,22 @@ npm run docker:logs
 - Empty strings are automatically converted to `undefined` for proper optional handling
 - Database connection string format: `postgresql://user:password@host:port/database`
 
-### Styling
+### Styling (Web-Specific)
 
-- Tailwind CSS v4 via `@tailwindcss/vite` plugin
-- Path aliases: `@/*` maps to `src/*` (configured in tsconfig.json)
-- Shadcn components: Install with `pnpx shadcn@latest add <component>`
-- Component config: `components.json` defines paths and styling approach
+> **Note**: This section applies to the web client only.
+
+- **Tailwind CSS v4**: Via `@tailwindcss/vite` plugin
+- **Styles**: `src/styles.css`
+- **Path aliases**: `@/*` maps to `src/*` (configured in tsconfig.json)
+- **Shadcn components**: Install with `pnpx shadcn@latest add <component>`
+- **Component config**: `components.json` defines paths and styling approach
+
+**Adding Components:**
+```bash
+pnpx shadcn@latest add button
+pnpx shadcn@latest add card
+pnpx shadcn@latest add form
+```
 
 ### Code Quality
 
@@ -328,6 +583,83 @@ export const myProcedure = os
 
 **Important:** oRPC expects Standard Schema V1 format, so wrap Effect schemas with `Schema.standardSchemaV1()`
 
+### Effect Error Handling
+
+Effect provides structured error handling for services and domain logic. Follow these patterns:
+
+**Domain API Error Pattern:**
+```typescript
+// Domain APIs throw standard Error classes
+import { NotFoundError, ValidationError } from '@/lib/errors'
+
+export const GadgetBot = {
+  findById: async (id: string): Promise<GadgetBot> => {
+    return Effect.runPromise(
+      pipe(
+        getGadgetBot(id),
+        Effect.catchTag("NotFound", () =>
+          Effect.fail(new NotFoundError(`GadgetBot ${id} not found`))
+        ),
+        Effect.catchTag("ValidationError", (e) =>
+          Effect.fail(new ValidationError(e.message))
+        )
+      )
+    )
+  }
+}
+```
+
+**Service Layer Error Pattern:**
+```typescript
+// Services use Effect's tagged errors
+import { Effect, Data } from 'effect'
+
+class NotFoundError extends Data.TaggedError("NotFound")<{
+  id: string
+}> {}
+
+class DatabaseError extends Data.TaggedError("Database")<{
+  cause: unknown
+}> {}
+
+// Service function returns Effect with explicit error types
+const getGadgetBot = (id: string): Effect.Effect<GadgetBot, NotFoundError | DatabaseError> => {
+  return pipe(
+    Effect.tryPromise({
+      try: () => db.query.gadgetbots.findFirst({ where: eq(gadgetbots.id, id) }),
+      catch: (error) => new DatabaseError({ cause: error }),
+    }),
+    Effect.flatMap((result) =>
+      result
+        ? Effect.succeed(result)
+        : Effect.fail(new NotFoundError({ id }))
+    )
+  )
+}
+```
+
+**Error Recovery:**
+```typescript
+// Provide fallback values
+pipe(
+  getGadgetBot(id),
+  Effect.catchAll(() => Effect.succeed(null)), // Return null on any error
+  Effect.catchTag("NotFound", () => Effect.succeed(defaultGadgetBot)), // Fallback for specific error
+)
+
+// Retry on transient errors
+pipe(
+  getGadgetBot(id),
+  Effect.retry(Schedule.exponential("100 millis").pipe(Schedule.jittered))
+)
+```
+
+**Key Principles:**
+1. **Services**: Use Effect's tagged errors for structured error types
+2. **Domain APIs**: Convert to standard Error classes before returning Promises
+3. **Type Safety**: Effect errors are tracked in the type system
+4. **Composition**: Use `catchTag` for specific error handling, `catchAll` for catch-all
+
 ### Isomorphic Code
 
 Use `createIsomorphicFn()` from `@tanstack/react-start` for code that runs differently on server vs client (see `src/orpc/client.ts` for example).
@@ -335,6 +667,79 @@ Use `createIsomorphicFn()` from `@tanstack/react-start` for code that runs diffe
 ### Route Loading
 
 Routes can define loaders for SSR data fetching. Router context includes `queryClient` for integrating TanStack Query.
+
+### Testing Patterns
+
+> **Coming Soon**: Testing patterns for domains, services, and web components.
+
+**Current Testing Setup:**
+- **Test Runner**: Vitest
+- **Command**: `npm run test`
+- **Watch Mode**: `npm run test -- --watch`
+
+**Recommended Patterns:**
+
+**Unit Tests (Domains/Services):**
+```typescript
+// tests/domains/products.test.ts
+import { describe, it, expect, beforeEach } from 'vitest'
+import { GadgetBot } from '@/domains/products'
+
+describe('GadgetBot Domain', () => {
+  beforeEach(async () => {
+    // Reset test database
+    await resetTestDb()
+  })
+
+  it('should create a gadgetbot', async () => {
+    const bot = await GadgetBot.create({
+      name: 'TestBot',
+      type: 'cleaning',
+      status: 'available'
+    })
+
+    expect(bot.id).toBeDefined()
+    expect(bot.name).toBe('TestBot')
+  })
+
+  it('should throw NotFoundError for missing gadgetbot', async () => {
+    await expect(
+      GadgetBot.findById('non-existent-id')
+    ).rejects.toThrow('not found')
+  })
+})
+```
+
+**Integration Tests (oRPC):**
+```typescript
+// tests/orpc/products.test.ts
+import { describe, it, expect } from 'vitest'
+import { router } from '@/orpc/router'
+
+describe('Products oRPC', () => {
+  it('should list all products', async () => {
+    const result = await router.products.list({})
+
+    expect(result).toBeInstanceOf(Array)
+    expect(result[0]).toHaveProperty('id')
+  })
+})
+```
+
+**Component Tests (Web):**
+```typescript
+// tests/components/ProductCard.test.tsx
+import { describe, it, expect } from 'vitest'
+import { render, screen } from '@testing-library/react'
+import { ProductCard } from '@/components/ProductCard'
+
+describe('ProductCard', () => {
+  it('should display product name', () => {
+    render(<ProductCard name="TestBot" type="cleaning" />)
+    expect(screen.getByText('TestBot')).toBeInTheDocument()
+  })
+})
+```
 
 ### Domain-Driven Design (Inspired by Elixir Ash)
 
@@ -442,11 +847,213 @@ Some libraries are tightly coupled to Zod and cannot use Standard Schema:
 - **MCP SDK** (`@modelcontextprotocol/sdk`) - Requires Zod types for tool registration
 - Keep these files using Zod, typically in demo/example code
 
-## Demo App
+---
+
+## Multi-Client Architecture Benefits
+
+Once the web separation is complete, the codebase will support multiple client types naturally:
+
+### Client Types
+
+**Web Client (`src/web/`):**
+- React components with TanStack Start/Router/Query
+- Server-side rendering (SSR) and static site generation (SSG)
+- Uses `src/web/orpc/client.ts` with isomorphic fetch
+- TanStack Query for state management
+- Tailwind CSS styling
+
+**CLI Client (`src/cli/`):**
+- Direct access to `src/domains/` APIs
+- REPL for interactive testing
+- Interactive menus and commands
+- No web dependencies (React, TanStack, etc.)
+- Can use oRPC router directly or domain APIs
+
+**JSON API Client (Future):**
+- External applications consume oRPC endpoints
+- Type-safe client generation for TypeScript consumers
+- Standard HTTP/JSON for non-TypeScript clients
+- Uses same `src/orpc/router/` as web client
+
+### Architectural Layers
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                         Clients                              │
+│  ┌──────────┐    ┌──────────┐    ┌──────────────────────┐  │
+│  │   Web    │    │   CLI    │    │   External JSON API  │  │
+│  │ (React)  │    │ (Node)   │    │   (Any Language)     │  │
+│  └─────┬────┘    └─────┬────┘    └──────────┬───────────┘  │
+└────────┼───────────────┼────────────────────┼──────────────┘
+         │               │                    │
+         │               │                    │
+┌────────┼───────────────┼────────────────────┼──────────────┐
+│        │               │                    │               │
+│   ┌────▼──────┐   ┌───▼────────────────────▼──────┐       │
+│   │ Web oRPC  │   │    oRPC Router (Shared)        │       │
+│   │  Client   │   │   (Type-Safe Procedures)       │       │
+│   └───────────┘   └────────────┬───────────────────┘       │
+│                                 │                            │
+│                    API Layer (src/orpc/)                     │
+└─────────────────────────────────┼───────────────────────────┘
+                                  │
+┌─────────────────────────────────┼───────────────────────────┐
+│                                 │                            │
+│                    ┌────────────▼────────────┐              │
+│                    │   Domain APIs           │              │
+│                    │   (Clean Async Funcs)   │              │
+│                    └────────────┬────────────┘              │
+│                                 │                            │
+│                    Core Layer (src/domains/)                 │
+└─────────────────────────────────┼───────────────────────────┘
+                                  │
+┌─────────────────────────────────┼───────────────────────────┐
+│                                 │                            │
+│                    ┌────────────▼────────────┐              │
+│                    │   Database Services     │              │
+│                    │   (Effect + Drizzle)    │              │
+│                    └────────────┬────────────┘              │
+│                                 │                            │
+│                    Database Layer (src/db/)                  │
+└─────────────────────────────────┼───────────────────────────┘
+                                  │
+                         ┌────────▼────────┐
+                         │   PostgreSQL    │
+                         └─────────────────┘
+```
+
+### Key Principles
+
+1. **Separation of Concerns**: Web code doesn't leak into core domains
+2. **Reusability**: Domain logic shared across all clients
+3. **Type Safety**: End-to-end types from database to client
+4. **Testability**: Core logic testable without web dependencies
+5. **Flexibility**: Add new client types without touching core
+6. **Clean APIs**: Domains export plain async functions, no framework types
+
+### Example Usage Patterns
+
+**Web Client:**
+```typescript
+// src/web/routes/products.tsx
+import { orpc } from '@/web/orpc/client'
+import { useQuery } from '@tanstack/react-query'
+
+export function ProductsPage() {
+  const { data } = orpc.products.list.useQuery()
+  // React component rendering
+}
+```
+
+**CLI Client:**
+```typescript
+// src/cli/commands/list-products.ts
+import { GadgetBot } from '@/domains/products'
+
+async function listProducts() {
+  const products = await GadgetBot.findAll()
+  console.table(products)
+}
+```
+
+**External JSON API Client:**
+```bash
+# Any HTTP client can call oRPC endpoints
+curl -X POST https://api.example.com/api/rpc/products.list \
+  -H "Content-Type: application/json" \
+  -d '{"input": {}}'
+```
+
+---
+
+## Troubleshooting
+
+### Common Issues
+
+**Database Connection Errors**
+```bash
+# Check if Docker container is running
+docker ps
+
+# Restart database
+npm run docker:down
+npm run docker:up
+
+# Check connection string in .env
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/gadgetbot
+```
+
+**Migration Errors**
+```bash
+# Reset database completely
+npm run db:reset
+
+# Or manually
+npm run docker:down
+npm run docker:up
+npm run db:migrate
+npm run db:seed
+```
+
+**Build Errors**
+```bash
+# Clear build cache
+rm -rf .vinxi
+
+# Reinstall dependencies
+rm -rf node_modules package-lock.json
+npm install
+
+# Check TypeScript errors
+npx tsc --noEmit
+```
+
+**Import Path Errors**
+```typescript
+// ✅ Correct - use @ alias
+import { env } from '@/env'
+import { GadgetBot } from '@/domains/products'
+
+// ❌ Incorrect - relative paths from distant files
+import { env } from '../../../env'
+```
+
+**Effect Schema Errors with oRPC**
+```typescript
+// ❌ Wrong - Effect Schema directly
+os.input(MySchema)
+
+// ✅ Correct - Wrap with standardSchemaV1
+os.input(Schema.standardSchemaV1(MySchema))
+```
+
+**REPL Not Loading Modules**
+```bash
+# Use .js extension for ESM
+> const Products = await import('./src/domains/products.js')
+
+# Not .ts
+> const Products = await import('./src/domains/products.ts')
+```
+
+### Getting Help
+
+- **Documentation**: See [TanStack Docs](https://tanstack.com)
+- **Effect Docs**: Use MCP tools `effect_docs_search` or check [Effect website](https://effect.website)
+- **GitHub Issues**: File bugs/questions in the project repository
+- **Logs**: Check `npm run docker:logs` for database issues
+
+---
+
+## Appendix
+
+### Demo App
+
+> **TL;DR**: A comprehensive demo at `/demo` showcases TanStack features. Completely isolated from main GadgetBot app.
 
 A comprehensive demo application is available at the `/demo` route showcasing TanStack features and patterns. The demo is completely isolated from the main GadgetBot application.
 
-### Demo Structure
+**Demo Structure:**
 
 All demo code lives in `/src/demo/` and `/src/routes/demo/`:
 
@@ -489,10 +1096,9 @@ All demo code lives in `/src/demo/` and `/src/routes/demo/`:
   mcp-todos.tsx               # MCP todos UI
 
 /src/routes/demo.tsx  # Demo layout with Header
-
 ```
 
-### Demo Features
+**Demo Features:**
 
 The demo showcases:
 - **TanStack Start**: Server functions, SSR modes (SPA, Full SSR, Data-only)
@@ -502,7 +1108,7 @@ The demo showcases:
 - **MCP (Model Context Protocol)**: Tool registration and resource handling
 - **Real-time**: Server-sent events for live updates
 
-### Using Demo Code as Reference
+**Using Demo Code as Reference:**
 
 When building GadgetBot features, you can reference demo implementations for:
 - Setting up oRPC procedures with Effect Schema
@@ -513,7 +1119,7 @@ When building GadgetBot features, you can reference demo implementations for:
 
 The demo has its own isolated oRPC router and client, so it won't interfere with your main application's API.
 
-## Cursor Rules
+### Cursor Rules
 
 Use Shadcn components via:
 ```bash
