@@ -195,7 +195,7 @@ Use `createIsomorphicFn()` from `@tanstack/react-start` for code that runs diffe
 
 Routes can define loaders for SSR data fetching. Router context includes `queryClient` for integrating TanStack Query.
 
-### Domain-Driven Design (Ash-Inspired)
+### Domain-Driven Design (Inspired by Elixir Ash)
 
 **Domain Structure:**
 - Domains live in `src/domains/`

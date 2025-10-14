@@ -45,29 +45,23 @@ export const GadgetBot = S.Struct({
 // Type inference
 export type GadgetBot = typeof GadgetBot.Type
 
-// Input S for creating a new GadgetBot (without generated fields)
-export const CreateGadgetBotInput = S.Struct({
-	name: S.String,
-	type: GadgetBotType,
-	description: S.String,
-	batteryLife: S.Number.pipe(S.greaterThan(0)),
-	maxLoadCapacity: S.Number.pipe(S.greaterThan(0)),
-	features: S.Array(S.String),
-	imageUrl: S.optional(S.String),
-})
+// CREATE
+// Input schemas derived from main schema (like Ecto changesets)
+// For creating: omit server-generated fields
+export const CreateGadgetBotInput = S.Struct(GadgetBot.fields).pipe(
+	S.omit("id", "status", "createdAt", "updatedAt"),
+)
 
 export type CreateGadgetBotInput = typeof CreateGadgetBotInput.Type
 
-// Input S for updating a GadgetBot (all fields optional except id)
+// UPDATE
+// For updating: require id, make user-editable fields optional
+const updateableFields = S.Struct(GadgetBot.fields).pipe(
+	S.omit("id", "createdAt", "updatedAt"),
+)
+
 export const UpdateGadgetBotInput = S.Struct({
 	id: S.String,
-	name: S.optional(S.String),
-	status: S.optional(GadgetBotStatus),
-	description: S.optional(S.String),
-	batteryLife: S.optional(S.Number.pipe(S.greaterThan(0))),
-	maxLoadCapacity: S.optional(S.Number.pipe(S.greaterThan(0))),
-	features: S.optional(S.Array(S.String)),
-	imageUrl: S.optional(S.String),
-})
+}).pipe(S.extend(S.partial(updateableFields)))
 
 export type UpdateGadgetBotInput = typeof UpdateGadgetBotInput.Type
