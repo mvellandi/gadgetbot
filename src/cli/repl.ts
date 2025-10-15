@@ -8,8 +8,7 @@
  *   npm run repl
  *
  * Example session:
- *   > const Products = await import('./src/domains/products.js')
- *   > await Products.GadgetBot.create({
+ *   > await GadgetBot.create({
  *       name: "CleanBot 3000",
  *       type: "cleaning",
  *       description: "Advanced cleaning robot",
@@ -17,7 +16,7 @@
  *       maxLoadCapacity: 50,
  *       features: ["vacuum", "mop", "dust"]
  *     })
- *   > await Products.GadgetBot.findAll()
+ *   > await GadgetBot.findAll()
  */
 
 import repl from "node:repl"
@@ -31,13 +30,22 @@ const projectRoot = resolve(__dirname, "../..")
 console.log("🤖 GadgetBot REPL")
 console.log("==================")
 console.log("")
-console.log("Welcome to the GadgetBot REPL!")
+console.log("Loading domain modules...")
+
+// Pre-load domain modules
+const Products = await import("../domains/products.js")
+
+console.log("✓ Loaded: GadgetBot")
+console.log("")
+console.log("Available APIs:")
+console.log("  - GadgetBot.create(input)")
+console.log("  - GadgetBot.findAll()")
+console.log("  - GadgetBot.findById(id)")
+console.log("  - GadgetBot.update(id, input)")
+console.log("  - GadgetBot.deleteById(id)")
 console.log("")
 console.log("Quick start:")
-console.log("  const Products = await import('./src/domains/products.js')")
-console.log("")
-console.log("Create a GadgetBot:")
-console.log("  await Products.GadgetBot.create({")
+console.log('  await GadgetBot.create({')
 console.log('    name: "CleanBot 3000",')
 console.log('    type: "cleaning",')
 console.log('    description: "Advanced cleaning robot",')
@@ -46,17 +54,7 @@ console.log("    maxLoadCapacity: 50,")
 console.log('    features: ["vacuum", "mop", "dust"]')
 console.log("  })")
 console.log("")
-console.log("List all GadgetBots:")
-console.log("  await Products.GadgetBot.findAll()")
-console.log("")
-console.log("Find by ID:")
-console.log('  await Products.GadgetBot.findById("id-here")')
-console.log("")
-console.log("Update:")
-console.log('  await Products.GadgetBot.update("id-here", { name: "NewName" })')
-console.log("")
-console.log("Delete:")
-console.log('  await Products.GadgetBot.deleteById("id-here")')
+console.log("  await GadgetBot.findAll()")
 console.log("")
 console.log("==================")
 console.log("")
@@ -66,8 +64,10 @@ const replServer = repl.start({
 	useColors: true,
 })
 
-// Set the working directory context
+// Pre-load domain APIs into context
 replServer.context.projectRoot = projectRoot
+replServer.context.GadgetBot = Products.GadgetBot
+replServer.context.Products = Products
 
 // Handle cleanup on exit
 replServer.on("exit", async () => {
