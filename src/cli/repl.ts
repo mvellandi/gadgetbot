@@ -22,6 +22,9 @@
 import repl from "node:repl"
 import { fileURLToPath } from "node:url"
 import { dirname, resolve } from "node:path"
+import { Effect, Layer, Logger, LogLevel, ManagedRuntime } from "effect"
+import { GadgetBotService } from "../domains/products/gadgetbot-service.js"
+import type { CreateGadgetBotInput, GadgetBot as GadgetBotType, UpdateGadgetBotInput } from "../domains/products/gadgetbot.js"
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -32,7 +35,63 @@ console.log("==================")
 console.log("")
 console.log("Loading domain modules...")
 
-// Pre-load domain modules
+// Create a custom runtime with logging disabled for cleaner REPL experience
+const SilentGadgetBotRuntime = ManagedRuntime.make(
+	Layer.merge(
+		Logger.minimumLogLevel(LogLevel.None),
+		GadgetBotService.Default
+	),
+)
+
+// Create silent wrapper functions for cleaner REPL output
+const GadgetBot = {
+	create: async (input: CreateGadgetBotInput): Promise<GadgetBotType> => {
+		return SilentGadgetBotRuntime.runPromise(
+			Effect.gen(function* () {
+				const service = yield* GadgetBotService
+				return yield* service.create(input)
+			}),
+		)
+	},
+
+	findAll: async (): Promise<GadgetBotType[]> => {
+		return SilentGadgetBotRuntime.runPromise(
+			Effect.gen(function* () {
+				const service = yield* GadgetBotService
+				return yield* service.findAll()
+			}),
+		)
+	},
+
+	findById: async (id: string): Promise<GadgetBotType> => {
+		return SilentGadgetBotRuntime.runPromise(
+			Effect.gen(function* () {
+				const service = yield* GadgetBotService
+				return yield* service.findById(id)
+			}),
+		)
+	},
+
+	update: async (id: string, input: Partial<Omit<UpdateGadgetBotInput, "id">>): Promise<GadgetBotType> => {
+		return SilentGadgetBotRuntime.runPromise(
+			Effect.gen(function* () {
+				const service = yield* GadgetBotService
+				return yield* service.update(id, input)
+			}),
+		)
+	},
+
+	deleteById: async (id: string): Promise<void> => {
+		return SilentGadgetBotRuntime.runPromise(
+			Effect.gen(function* () {
+				const service = yield* GadgetBotService
+				return yield* service.deleteById(id)
+			}),
+		)
+	},
+}
+
+// Also load the full Products module for reference
 const Products = await import("../domains/products.js")
 
 console.log("✓ Loaded: GadgetBot")
@@ -66,15 +125,16 @@ const replServer = repl.start({
 
 // Pre-load domain APIs into context
 replServer.context.projectRoot = projectRoot
-replServer.context.GadgetBot = Products.GadgetBot
-replServer.context.Products = Products
+replServer.context.GadgetBot = GadgetBot // Use silent version
+replServer.context.Products = Products // Full module with logging
 
 // Handle cleanup on exit
 replServer.on("exit", async () => {
 	console.log("\nGoodbye! 👋")
 
-	// Dispose the runtime
+	// Dispose both runtimes
 	try {
+		await SilentGadgetBotRuntime.dispose()
 		const { GadgetBotRuntime } = await import("../domains/products/gadgetbot-runtime.js")
 		await GadgetBotRuntime.dispose()
 	} catch (error) {
