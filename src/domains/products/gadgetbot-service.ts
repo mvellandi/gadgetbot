@@ -6,7 +6,9 @@
  */
 
 import { DateTime, Effect, Schema } from "effect"
-import type { CreateGadgetBotInput, GadgetBot, UpdateGadgetBotInput } from "./gadgetbot"
+import type { GadgetBot } from "./gadgetbot"
+import { CreateGadgetBotInput as CreateGadgetBotInputSchema, UpdateGadgetBotInput as UpdateGadgetBotInputSchema } from "./gadgetbot"
+import type { CreateGadgetBotInput, UpdateGadgetBotInput } from "./gadgetbot"
 
 // Tagged Errors for the service
 export class NotFoundError extends Schema.TaggedError<NotFoundError>()("NotFound", {
@@ -35,13 +37,23 @@ export class GadgetBotService extends Effect.Service<GadgetBotService>()("Gadget
 		const create = Effect.fn("GadgetBotService.create")(function* (input: CreateGadgetBotInput) {
 			yield* Effect.annotateCurrentSpan({ operation: "create" })
 
+			// Validate input with Effect Schema
+			const validatedInput = yield* Schema.decodeUnknown(CreateGadgetBotInputSchema)(input).pipe(
+				Effect.mapError((parseError) =>
+					new ValidationError({
+						message: `Invalid GadgetBot input: ${parseError.message}`,
+						cause: parseError,
+					})
+				)
+			)
+
 			// Generate ID and timestamps
 			const id = crypto.randomUUID()
 			const now = DateTime.unsafeNow()
 
 			const gadgetBot: GadgetBot = {
 				id,
-				...input,
+				...validatedInput,
 				status: "available",
 				createdAt: now,
 				updatedAt: now,
@@ -101,9 +113,20 @@ export class GadgetBotService extends Effect.Service<GadgetBotService>()("Gadget
 				)
 			}
 
+			// Validate partial update input with Effect Schema
+			// We validate the full update object (id + partial fields)
+			const validatedInput = yield* Schema.decodeUnknown(UpdateGadgetBotInputSchema)({ id, ...input }).pipe(
+				Effect.mapError((parseError) =>
+					new ValidationError({
+						message: `Invalid update input: ${parseError.message}`,
+						cause: parseError,
+					})
+				)
+			)
+
 			const updated: GadgetBot = {
 				...existing,
-				...input,
+				...validatedInput,
 				id, // Ensure ID doesn't change
 				updatedAt: DateTime.unsafeNow(),
 			}
