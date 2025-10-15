@@ -9,8 +9,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - [Development Commands](#development-commands)
 - [Architecture Overview](#architecture-overview)
   - [Current Structure](#current-structure)
-  - [Planned Multi-Client Structure](#planned-multi-client-structure)
-  - [Migration Guide](#migration-guide)
   - [Routing System](#routing-system-file-based)
   - [oRPC Integration](#orpc-integration-type-safe-rpc)
   - [Effect Integration](#effect-integration)
@@ -115,156 +113,49 @@ npm run repl             # Start Node REPL with pre-loaded modules
 
 ## Architecture Overview
 
-> **TL;DR**: This project uses a layered architecture where domains (business logic) and database are client-agnostic, while web/CLI/API clients consume them independently. See [Migration Guide](#migration-guide) for planned restructuring.
+> **TL;DR**: This project uses a multi-client layered architecture where domains (business logic) and database are client-agnostic, while web/CLI/API clients consume them independently.
 
 ### Current Structure
 
-The codebase is currently web-focused but organized to support multiple client types:
+The codebase uses a clean multi-client architecture with separated concerns:
 
 ```
 src/
-├── domains/          # Domain logic (client-agnostic)
-├── db/              # Database layer (client-agnostic)
-├── orpc/            # API procedures (client-agnostic router)
-├── routes/          # Web routes (TanStack Start) ⚠️ Will move
-├── components/      # Web components ⚠️ Will move
-├── integrations/    # Web integrations ⚠️ Will move
-├── lib/            # Web utilities ⚠️ Will move
-└── ...             # Other web-specific code
-```
-
-**Key Characteristics:**
-- Domain layer (`domains/`, `db/`) is already client-agnostic
-- Web-specific code (routes, components) is at root level
-- CLI exists but shares space with web code
-- Migration needed to fully separate concerns
-
-### Planned Multi-Client Structure
-
-The target architecture cleanly separates client-specific code:
-
-```
-src/
-├── domains/         # Domain layer (client-agnostic)
+├── domains/         # Domain layer (client-agnostic) ✓
 │   └── products/
-├── db/             # Database layer (client-agnostic)
-│   ├── schema/
-│   ├── services/
-│   └── migrations/
-├── cli/            # CLI interface (Node.js)
-│   ├── repl.ts
-│   └── commands/
-├── orpc/           # API router (client-agnostic)
-│   ├── router/
-│   └── schema.ts
-├── web/            # Web client (React/TanStack) ✨ NEW
+├── orpc/           # API router (client-agnostic) ✓
+│   └── router/
+├── web/            # Web client (React/TanStack) ✓
 │   ├── routes/
 │   ├── components/
 │   ├── integrations/
 │   ├── orpc/client.ts
-│   └── ...
-├── env.ts          # Shared config
-└── polyfill.ts     # Shared runtime
+│   ├── lib/
+│   ├── demo/
+│   ├── router.tsx
+│   └── styles.css
+├── env.ts          # Shared config ✓
+└── polyfill.ts     # Shared runtime ✓
 ```
 
-**Benefits:**
+**Key Characteristics:**
 - Web code isolated in `src/web/`
-- CLI can use domains without web dependencies
-- Future clients (mobile, desktop) have clear patterns to follow
-- Testability: core logic separate from UI
-
-See [Migration Guide](#migration-guide) below for implementation details.
-
-### Migration Guide
-
-This guide details moving web-specific code to `src/web/` while keeping infrastructure at root level.
-
-**Migration Goals:**
-1. Separate web-specific code (React, routes, components) into `src/web/`
-2. Keep infrastructure (domains, db, orpc router) at root level
-3. Enable CLI to use domains directly without web dependencies
-4. Support future clients (mobile, desktop) without coupling to web layer
-
-**What Moves to `src/web/`:**
-
-| Current Location | New Location | Description |
-|-----------------|--------------|-------------|
-| `src/routes/` | `src/web/routes/` | TanStack Start routes |
-| `src/components/` | `src/web/components/` | React components |
-| `src/integrations/` | `src/web/integrations/` | TanStack Query, etc. |
-| `src/orpc/client.ts` | `src/web/orpc/client.ts` | Web oRPC client only |
-| `src/lib/` | `src/web/lib/` | Web utilities |
-| `src/demo/` | `src/web/demo/` | Demo app |
-| `src/router.tsx` | `src/web/router.tsx` | Router setup |
-| `src/routeTree.gen.ts` | `src/web/routeTree.gen.ts` | Generated routes |
-| `src/styles.css` | `src/web/styles.css` | Styles |
-| `src/logo.svg` | `src/web/logo.svg` | Assets |
-
-**What Stays at Root:**
-
-- `src/domains/` - Client-agnostic domain logic
-- `src/db/` - Database schemas and services
-- `src/orpc/router/` - API procedures serving all clients
-- `src/orpc/schema.ts` - Shared API schemas
-- `src/env.ts` - Shared environment config
-- `src/polyfill.ts` - Shared runtime polyfills
-- `src/cli/` - CLI interface
-
-**Configuration Updates Required:**
-
-After migration, update these config files:
-
-**1. vite.config.ts** - Point TanStack Start plugin to new routes:
-```typescript
-tanstackStart({
-  routesDirectory: './src/web/routes',
-  generatedRouteTree: './src/web/routeTree.gen.ts',
-})
-```
-
-**2. tsconfig.json** - Add web-specific path aliases (optional):
-```json
-"paths": {
-  "@/*": ["./src/*"],
-  "@web/*": ["./src/web/*"]
-}
-```
-
-**3. components.json** - Update Shadcn paths:
-```json
-"aliases": {
-  "components": "@/web/components",
-  "utils": "@/web/lib/utils"
-}
-```
-
-**4. biome.json** - Update ignored files:
-```json
-"ignore": ["src/web/routeTree.gen.ts"]
-```
-
-**Migration Steps:**
-1. Create `src/web/` directory structure
-2. Move files according to table above
-3. Update imports in moved files (add `@web/` or adjust relative paths)
-4. Update configuration files
-5. Test that dev server, build, and CLI still work
-6. Update path references in [CLAUDE.md](CLAUDE.md) (this file)
+- Core infrastructure (domains, orpc router) at root level
+- Clean separation enables multiple client types
+- CLI can use domains directly without web dependencies
 
 ### Routing System (File-Based)
 
-> **Note**: After migration, routes will be in `src/web/routes/`. See [Migration Guide](#migration-guide).
-
-- Routes live in `src/routes/`
-- Auto-generated into `src/routeTree.gen.ts`
-- Root layout: `src/routes/__root.tsx` contains the application shell with devtools
+- Routes live in `src/web/routes/`
+- Auto-generated into `src/web/routeTree.gen.ts`
+- Root layout: `src/web/routes/__root.tsx` contains the application shell with devtools
 - Route files can export server handlers for API endpoints
-- Router setup: `src/router.tsx` integrates TanStack Query SSR
+- Router setup: `src/web/router.tsx` integrates TanStack Query SSR
 - Demo routes: All demo routes are under `/demo` path with their own layout
 
 **Example Route:**
 ```typescript
-// src/routes/products.tsx
+// src/web/routes/products.tsx
 export const Route = createFileRoute('/products')({
   loader: async ({ context }) => {
     // Use TanStack Query via context.queryClient
@@ -283,11 +174,11 @@ export const Route = createFileRoute('/products')({
 - **Pattern**: Each procedure uses `os.input(schema).handler(fn)`
 - **Main router**: `src/orpc/router/index.ts` exports all procedures
 - **Serves**: Web, CLI, and future JSON API clients
-- **HTTP endpoint**: `src/routes/api.rpc.$.ts`
+- **HTTP endpoint**: `src/web/routes/api.rpc.$.ts`
 
 **Client Side (Web-Specific):**
 
-- **Client location**: `src/orpc/client.ts`
+- **Client location**: `src/web/orpc/client.ts`
 - **Isomorphic pattern**: Server-side uses direct router, client-side uses fetch
 - **Server mode**: Direct router client with request headers
 - **Client mode**: Fetch-based RPC link to `/api/rpc`
@@ -295,7 +186,7 @@ export const Route = createFileRoute('/products')({
 
 **Architecture Note:**
 The oRPC router stays at `src/orpc/router/` (client-agnostic). Each client creates its own connection:
-- **Web**: Isomorphic client in `src/orpc/client.ts` (will move to `src/web/orpc/client.ts`)
+- **Web**: Isomorphic client in `src/web/orpc/client.ts`
 - **CLI**: Can use router directly or create custom client
 - **External APIs**: HTTP calls to `/api/rpc` endpoint
 
@@ -361,16 +252,16 @@ const StandardMySchema = Schema.standardSchemaV1(MySchema)
 
 > **Note**: This section applies to the web client only. CLI and other clients manage state differently.
 
-- **Server State**: TanStack Query via `src/integrations/tanstack-query/`
+- **Server State**: TanStack Query via `src/web/integrations/tanstack-query/`
 - **Query Client**: Created in `root-provider.tsx`, integrated with router context
-- **oRPC + Query**: Use `orpc` utils from `src/orpc/client.ts` for type-safe queries
+- **oRPC + Query**: Use `orpc` utils from `src/web/orpc/client.ts` for type-safe queries
 - **Client State**: React hooks (useState, useReducer)
 - **Form State**: TanStack Form with Effect Schema validation
 
 **Example:**
 ```typescript
 // Type-safe query with oRPC
-import { orpc } from '@/orpc/client'
+import { orpc } from '@/web/orpc/client'
 
 function ProductsList() {
   const { data, isLoading } = orpc.products.list.useQuery()
@@ -519,7 +410,7 @@ npm run docker:logs
 > **Note**: This section applies to the web client only.
 
 - **Tailwind CSS v4**: Via `@tailwindcss/vite` plugin
-- **Styles**: `src/styles.css`
+- **Styles**: `src/web/styles.css`
 - **Path aliases**: `@/*` maps to `src/*` (configured in tsconfig.json)
 - **Shadcn components**: Install with `pnpx shadcn@latest add <component>`
 - **Component config**: `components.json` defines paths and styling approach
@@ -537,7 +428,7 @@ pnpx shadcn@latest add form
 - Tabs for indentation
 - Double quotes for strings
 - Auto-organize imports
-- Ignores `src/routeTree.gen.ts` (auto-generated)
+- Ignores `src/web/routeTree.gen.ts` (auto-generated)
 - Only checks `src/`, `.vscode/`, and config files
 
 ### Polyfills
@@ -1055,10 +946,10 @@ A comprehensive demo application is available at the `/demo` route showcasing Ta
 
 **Demo Structure:**
 
-All demo code lives in `/src/demo/` and `/src/routes/demo/`:
+All demo code lives in `/src/web/demo/` and `/src/web/routes/demo/`:
 
 ```
-/src/demo/
+/src/web/demo/
   /components/          # Demo-specific components
     Header.tsx         # Demo navigation with all demo links
     FormComponents.tsx # TanStack Form component examples
@@ -1076,7 +967,7 @@ All demo code lives in `/src/demo/` and `/src/routes/demo/`:
     mcp-handler.ts    # MCP request handling utilities
   mcp-todos.ts        # MCP todos logic and state
 
-/src/routes/demo/
+/src/web/routes/demo/
   index.tsx           # Demo homepage (TanStack Start landing)
   api.$.ts            # OpenAPI/oRPC playground endpoint
   api.rpc.$.ts        # Demo oRPC endpoint
@@ -1095,7 +986,7 @@ All demo code lives in `/src/demo/` and `/src/routes/demo/`:
   api.names.ts                # Names API example
   mcp-todos.tsx               # MCP todos UI
 
-/src/routes/demo.tsx  # Demo layout with Header
+/src/web/routes/demo.tsx  # Demo layout with Header
 ```
 
 **Demo Features:**

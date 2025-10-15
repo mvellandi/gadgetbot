@@ -8,7 +8,7 @@ import { onError } from '@orpc/server'
 import { OpenAPIReferencePlugin } from '@orpc/openapi/plugins'
 
 import { TodoSchema } from '@/orpc/schema'
-import router from '@/demo/orpc/router'
+import router from '@/web/demo/orpc/router'
 
 const handler = new OpenAPIHandler(router, {
   interceptors: [
