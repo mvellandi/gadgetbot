@@ -22,9 +22,9 @@ type Env = typeof EnvSchema.Type;
 /**
  * Parse and validate environment variables at runtime
  */
-function createEnv(runtimeEnv: Record<string, unknown> | undefined): Env {
-	// Use process.env for Node.js scripts, import.meta.env for Vite
-	const envSource = runtimeEnv ?? process.env
+function createEnv(): Env {
+	// Always use process.env - TanStack Start automatically loads .env files
+	const envSource = process.env
 
 	// Transform empty strings to undefined for proper handling
 	const processedEnv = Object.fromEntries(
@@ -38,6 +38,4 @@ function createEnv(runtimeEnv: Record<string, unknown> | undefined): Env {
 	return Schema.decodeUnknownSync(EnvSchema)(processedEnv)
 }
 
-export const env = createEnv(
-	typeof import.meta.env !== "undefined" ? import.meta.env : undefined,
-)
+export const env = createEnv()

@@ -71,6 +71,9 @@ export const Products = {
 			return GadgetBotResource.deleteById(...args)
 		},
 
+		// Bot specifications - fixed characteristics for each bot type
+		Specs: GadgetBotResource.Specs,
+
 		// Effect Schemas for API layer (oRPC, forms)
 		Schemas: GadgetBotResource.Schemas,
 

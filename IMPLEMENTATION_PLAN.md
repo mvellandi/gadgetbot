@@ -29,7 +29,8 @@
 2. ~~Domain operations (CRUD)~~ ✅
 3. ~~Domain API (authorization wrapper)~~ ✅
 4. ~~oRPC endpoints~~ ✅
-5. Admin interface with forms
+5. ~~Admin interface with forms~~ ✅
+6. Testing and deployment
 
 ---
 
@@ -104,7 +105,7 @@ Update `GadgetBot` resource to call database services:
 
 ---
 
-## Phase 4: Admin Interface
+## Phase 4: Admin Interface ✅
 
 ### Route Structure
 ```
@@ -118,40 +119,42 @@ src/web/routes/admin/
         edit.tsx                 # Edit form
 ```
 
-### 4.1 Products Landing Page
+### 4.1 Products Landing Page ✅
 **File:** `src/web/routes/admin/products/index.tsx`
 
-- [ ] Install Shadcn: `table`, `badge`, `button`
-- [ ] Create table view with `orpc.products.gadgetbots.list.useQuery()`
-- [ ] Show: name, type, status, battery life
-- [ ] Add "Add New" button → `/admin/products/gadgetbots/new`
-- [ ] Add View/Edit actions per row
+- [x] Create table view with SSR data prefetching
+- [x] Show: name, type, status, battery life, load capacity
+- [x] Add "Add New" button → `/admin/products/gadgetbots/new`
+- [x] Add View/Edit actions per row
+- [x] Empty state handling
 
-### 4.2 Create Form
+### 4.2 Create Form ✅
 **File:** `src/web/routes/admin/products/gadgetbots/new.tsx`
 
-- [ ] Install Shadcn: `form`, `input`, `label`, `select`, `textarea`
-- [ ] Use TanStack Form with `Products.GadgetBot.new()` as defaults
-- [ ] Validate with Effect Schema (Standard Schema V1)
-- [ ] Auto-populate description/features on type selection (use `TYPE_DEFAULTS`)
-- [ ] Submit via `orpc.products.gadgetbots.create.useMutation()`
-- [ ] Handle errors and loading states
-- [ ] Navigate to list on success
+- [x] Two-field form: name and type selection
+- [x] Auto-populate specs on type selection
+- [x] Live preview of bot specifications
+- [x] Submit via TanStack React Query mutation
+- [x] Handle errors and loading states
+- [x] Navigate to list on success
 
-### 4.3 Edit Form
+### 4.3 Edit Form ✅
 **File:** `src/web/routes/admin/products/gadgetbots/$id/edit.tsx`
 
-- [ ] Load data with `orpc.products.gadgetbots.getById`
-- [ ] Reuse form layout from create
-- [ ] Use `update` mutation
-- [ ] Handle not found errors
+- [x] Load data with SSR prefetching
+- [x] Show fixed specifications (read-only)
+- [x] Allow battery life updates only
+- [x] Use TanStack React Query mutation
+- [x] Handle not found errors
 
-### 4.4 Detail View
+### 4.4 Detail View ✅
 **File:** `src/web/routes/admin/products/gadgetbots/$id/index.tsx`
 
-- [ ] Read-only display of gadgetbot
-- [ ] Add Edit and Delete buttons
-- [ ] Confirm before delete
+- [x] Read-only display with SSR
+- [x] Organized cards: Basic Info, Specifications, Features, Metadata
+- [x] Edit and Delete buttons
+- [x] Confirmation dialog for deletion
+- [x] Date formatting for timestamps
 
 ---
 
@@ -207,19 +210,19 @@ await Products.GadgetBot.deleteById(id)
 - [x] `docker-compose.yml` - PostgreSQL container
 - [x] `drizzle.config.ts` - Drizzle Kit config
 - [x] `src/orpc/router/products.ts` - oRPC endpoints with gadgetbots procedures
-- [ ] `src/web/routes/admin/products/index.tsx` - Products list
-- [ ] `src/web/routes/admin/products/gadgetbots/new.tsx` - Create form
-- [ ] `src/web/routes/admin/products/gadgetbots/$id/edit.tsx` - Edit form
-- [ ] `src/web/routes/admin/products/gadgetbots/$id/index.tsx` - Detail view
+- [x] `src/web/routes/admin/products/index.tsx` - Products list with SSR
+- [x] `src/web/routes/admin/products/gadgetbots/new.tsx` - Create form
+- [x] `src/web/routes/admin/products/gadgetbots/$id/edit.tsx` - Edit form
+- [x] `src/web/routes/admin/products/gadgetbots/$id/index.tsx` - Detail view
 
 ### Updated Files (Completed)
 
-- [x] `src/domains/products/gadgetbot.ts` - Refactored with Schemas and Types namespaces
-- [x] `src/env.ts` - Added DATABASE_URL validation and Node.js support
+- [x] `src/domains/products/gadgetbot.ts` - Refactored with Schemas, Types, and Specs
+- [x] `src/env.ts` - Fixed to use process.env for TanStack Start compatibility
 - [x] `package.json` - Added database scripts and test:domain script
-- [x] `src/domains/products.ts` - Added authorization wrapper and exposed Schemas/Types
+- [x] `src/domains/products.ts` - Added Specs export and authorization wrapper
 - [x] `src/orpc/router/index.ts` - Export gadgetbots procedures
-- [ ] `CLAUDE.md` - Document database layer
+- [x] `vite.config.ts` - Added dotenv/config for .env loading
 
 ### Migrations (Completed)
 

@@ -10,11 +10,20 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminProductsIndexRouteImport } from './routes/admin/products/index'
 import { Route as ApiRpcSplatRouteImport } from './routes/api.rpc.$'
+import { Route as AdminProductsGadgetbotsNewRouteImport } from './routes/admin/products/gadgetbots/new'
+import { Route as AdminProductsGadgetbotsIdIndexRouteImport } from './routes/admin/products/gadgetbots/$id/index'
+import { Route as AdminProductsGadgetbotsIdEditRouteImport } from './routes/admin/products/gadgetbots/$id/edit'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminProductsIndexRoute = AdminProductsIndexRouteImport.update({
+  id: '/admin/products/',
+  path: '/admin/products/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiRpcSplatRoute = ApiRpcSplatRouteImport.update({
@@ -22,31 +31,84 @@ const ApiRpcSplatRoute = ApiRpcSplatRouteImport.update({
   path: '/api/rpc/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminProductsGadgetbotsNewRoute =
+  AdminProductsGadgetbotsNewRouteImport.update({
+    id: '/admin/products/gadgetbots/new',
+    path: '/admin/products/gadgetbots/new',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AdminProductsGadgetbotsIdIndexRoute =
+  AdminProductsGadgetbotsIdIndexRouteImport.update({
+    id: '/admin/products/gadgetbots/$id/',
+    path: '/admin/products/gadgetbots/$id/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AdminProductsGadgetbotsIdEditRoute =
+  AdminProductsGadgetbotsIdEditRouteImport.update({
+    id: '/admin/products/gadgetbots/$id/edit',
+    path: '/admin/products/gadgetbots/$id/edit',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/api/rpc/$': typeof ApiRpcSplatRoute
+  '/admin/products': typeof AdminProductsIndexRoute
+  '/admin/products/gadgetbots/new': typeof AdminProductsGadgetbotsNewRoute
+  '/admin/products/gadgetbots/$id/edit': typeof AdminProductsGadgetbotsIdEditRoute
+  '/admin/products/gadgetbots/$id': typeof AdminProductsGadgetbotsIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/api/rpc/$': typeof ApiRpcSplatRoute
+  '/admin/products': typeof AdminProductsIndexRoute
+  '/admin/products/gadgetbots/new': typeof AdminProductsGadgetbotsNewRoute
+  '/admin/products/gadgetbots/$id/edit': typeof AdminProductsGadgetbotsIdEditRoute
+  '/admin/products/gadgetbots/$id': typeof AdminProductsGadgetbotsIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/api/rpc/$': typeof ApiRpcSplatRoute
+  '/admin/products/': typeof AdminProductsIndexRoute
+  '/admin/products/gadgetbots/new': typeof AdminProductsGadgetbotsNewRoute
+  '/admin/products/gadgetbots/$id/edit': typeof AdminProductsGadgetbotsIdEditRoute
+  '/admin/products/gadgetbots/$id/': typeof AdminProductsGadgetbotsIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/api/rpc/$'
+  fullPaths:
+    | '/'
+    | '/api/rpc/$'
+    | '/admin/products'
+    | '/admin/products/gadgetbots/new'
+    | '/admin/products/gadgetbots/$id/edit'
+    | '/admin/products/gadgetbots/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/api/rpc/$'
-  id: '__root__' | '/' | '/api/rpc/$'
+  to:
+    | '/'
+    | '/api/rpc/$'
+    | '/admin/products'
+    | '/admin/products/gadgetbots/new'
+    | '/admin/products/gadgetbots/$id/edit'
+    | '/admin/products/gadgetbots/$id'
+  id:
+    | '__root__'
+    | '/'
+    | '/api/rpc/$'
+    | '/admin/products/'
+    | '/admin/products/gadgetbots/new'
+    | '/admin/products/gadgetbots/$id/edit'
+    | '/admin/products/gadgetbots/$id/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ApiRpcSplatRoute: typeof ApiRpcSplatRoute
+  AdminProductsIndexRoute: typeof AdminProductsIndexRoute
+  AdminProductsGadgetbotsNewRoute: typeof AdminProductsGadgetbotsNewRoute
+  AdminProductsGadgetbotsIdEditRoute: typeof AdminProductsGadgetbotsIdEditRoute
+  AdminProductsGadgetbotsIdIndexRoute: typeof AdminProductsGadgetbotsIdIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -58,11 +120,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/products/': {
+      id: '/admin/products/'
+      path: '/admin/products'
+      fullPath: '/admin/products'
+      preLoaderRoute: typeof AdminProductsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/rpc/$': {
       id: '/api/rpc/$'
       path: '/api/rpc/$'
       fullPath: '/api/rpc/$'
       preLoaderRoute: typeof ApiRpcSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/products/gadgetbots/new': {
+      id: '/admin/products/gadgetbots/new'
+      path: '/admin/products/gadgetbots/new'
+      fullPath: '/admin/products/gadgetbots/new'
+      preLoaderRoute: typeof AdminProductsGadgetbotsNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/products/gadgetbots/$id/': {
+      id: '/admin/products/gadgetbots/$id/'
+      path: '/admin/products/gadgetbots/$id'
+      fullPath: '/admin/products/gadgetbots/$id'
+      preLoaderRoute: typeof AdminProductsGadgetbotsIdIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/products/gadgetbots/$id/edit': {
+      id: '/admin/products/gadgetbots/$id/edit'
+      path: '/admin/products/gadgetbots/$id/edit'
+      fullPath: '/admin/products/gadgetbots/$id/edit'
+      preLoaderRoute: typeof AdminProductsGadgetbotsIdEditRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -71,6 +161,10 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ApiRpcSplatRoute: ApiRpcSplatRoute,
+  AdminProductsIndexRoute: AdminProductsIndexRoute,
+  AdminProductsGadgetbotsNewRoute: AdminProductsGadgetbotsNewRoute,
+  AdminProductsGadgetbotsIdEditRoute: AdminProductsGadgetbotsIdEditRoute,
+  AdminProductsGadgetbotsIdIndexRoute: AdminProductsGadgetbotsIdIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
