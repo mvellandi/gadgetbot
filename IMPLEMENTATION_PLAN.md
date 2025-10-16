@@ -5,59 +5,74 @@
 ### ✅ Completed
 - Domain structure (DDD two-layer pattern)
 - Resource schemas with Effect Schema
-- `Products.GadgetBot.new()` - Returns creation template
-- `Products.GadgetBot.create()` - Stub with auth hooks
+- **Phase 1: Database Layer (Complete)**
+  - PostgreSQL setup via Docker/OrbStack
+  - Drizzle ORM with migrations
+  - Database service layer with Effect
+  - All CRUD operations implemented
+  - Seed data and test scripts
+- **Phase 2: Domain Operations (Complete)**
+  - All GadgetBot CRUD operations
+  - Effect Schema validation
+  - Clean Promise-based API
+  - Delete returns deleted item for confirmation
 
 ### 🚧 Next Up
-1. Database layer (schema + services)
-2. Domain operations (CRUD)
-3. oRPC endpoints
-4. Admin interface with forms
+1. ~~Database layer (schema + services)~~ ✅
+2. ~~Domain operations (CRUD)~~ ✅
+3. Domain API (authorization wrapper)
+4. oRPC endpoints
+5. Admin interface with forms
 
 ---
 
-## Phase 1: Database Layer
+## Phase 1: Database Layer ✅
 
 ### 1.1 Drizzle Schema
+
 **File:** `src/db/schema/gadgetbots.ts`
 
-- [ ] Create pgTable for gadgetbots (id, name, type, status, description, batteryLife, maxLoadCapacity, features, imageUrl, timestamps)
-- [ ] Export types: `GadgetBotRow`, `NewGadgetBotRow`
-- [ ] Export from `src/db/schema/index.ts`
-- [ ] Generate migration: `npm run db:generate`
-- [ ] Apply migration: `npm run db:migrate`
-- [ ] Verify in Drizzle Studio
+- [x] Create pgTable for gadgetbots (id, name, type, status, description, batteryLife, maxLoadCapacity, features, imageUrl, timestamps)
+- [x] Export types: `GadgetBotRow`, `NewGadgetBotRow`
+- [x] Export from `src/db/schema/index.ts`
+- [x] Generate migration: `npm run db:generate`
+- [x] Apply migration: `npm run db:migrate`
+- [x] Verify in Drizzle Studio
 
 ### 1.2 Database Service Layer
+
 **File:** `src/db/services/gadgetbot.ts`
 
-- [ ] Define tagged errors: `NotFoundError`, `DatabaseError`, `ValidationError`
-- [ ] Implement Effect-based operations:
+- [x] Define tagged errors: `NotFoundError`, `DatabaseError`, `ValidationError`
+- [x] Implement Effect-based operations:
   - `createGadgetBot(input)`
   - `findAllGadgetBots()`
   - `findGadgetBotById(id)`
   - `updateGadgetBot(id, input)`
-  - `deleteGadgetBot(id)`
-- [ ] Test in REPL
+  - `deleteGadgetBot(id)` - Returns deleted item for confirmation
+- [x] Test with CLI test script
 
 ---
 
-## Phase 2: Domain Operations
+## Phase 2: Domain Operations ✅
 
 ### 2.1 Resource Operations
+
 **File:** `src/domains/products/gadgetbot.ts`
 
 Update `GadgetBot` resource to call database services:
 
-- [ ] Implement `create()` - validate + call service + runPromise
-- [ ] Implement `findAll()`
-- [ ] Implement `findById()`
-- [ ] Implement `update()`
-- [ ] Implement `deleteById()`
-- [ ] Convert Effect errors to standard Error classes
-- [ ] Test all operations in REPL
+- [x] Implement `create()` - validate + call service + runPromise
+- [x] Implement `findAll()`
+- [x] Implement `findById()`
+- [x] Implement `update()`
+- [x] Implement `deleteById()` - Returns deleted item
+- [x] Convert Effect errors to standard Error classes
+- [x] Add `rowToModel()` helper for null/undefined conversion
+- [x] Test all operations with CLI test script
 
 ### 2.2 Domain API
+
 **File:** `src/domains/products.ts`
 
 - [ ] Add all CRUD operations to `Products.GadgetBot`
@@ -133,13 +148,13 @@ src/web/routes/admin/
 
 ---
 
-## Phase 5: Seed Data
+## Phase 5: Seed Data ✅
 
 **File:** `src/db/seed.ts`
 
-- [ ] Create 3 sample gadgetbots (CleanBot, GardenMaster, SecureGuard)
-- [ ] Run: `npm run db:seed`
-- [ ] Verify in Drizzle Studio
+- [x] Create 5 sample gadgetbots (CleanBot, GardenMaster, SecureGuard, VacBot, LawnKeeper)
+- [x] Run: `npm run db:seed`
+- [x] Verify with CLI test script
 
 ---
 
@@ -171,24 +186,36 @@ await Products.GadgetBot.deleteById(id)
 
 ## Deliverables
 
-### New Files
-- `src/db/schema/gadgetbots.ts`
-- `src/db/services/gadgetbot.ts`
-- `src/orpc/router/products.ts`
-- `src/web/routes/admin/products/index.tsx`
-- `src/web/routes/admin/products/gadgetbots/new.tsx`
-- `src/web/routes/admin/products/gadgetbots/$id/edit.tsx`
-- `src/web/routes/admin/products/gadgetbots/$id/index.tsx`
-- `src/db/seed.ts`
+### New Files (Completed)
 
-### Updated Files
-- `src/domains/products/gadgetbot.ts` (implement CRUD)
-- `src/domains/products.ts` (add all operations)
-- `src/orpc/router/index.ts` (export products router)
-- `CLAUDE.md` (update DDD section)
+- [x] `src/db/client.ts` - Database connection with pooling
+- [x] `src/db/schema/gadgetbots.ts` - Drizzle table schema
+- [x] `src/db/schema/index.ts` - Schema exports
+- [x] `src/db/services/gadgetbot.ts` - Effect-based CRUD operations
+- [x] `src/db/migrate.ts` - Migration runner
+- [x] `src/db/seed.ts` - Seed data script
+- [x] `src/cli/reset-db.ts` - Database reset utility
+- [x] `src/cli/test-db.ts` - CRUD test script
+- [x] `docker-compose.yml` - PostgreSQL container
+- [x] `drizzle.config.ts` - Drizzle Kit config
+- [ ] `src/orpc/router/products.ts` - oRPC endpoints
+- [ ] `src/web/routes/admin/products/index.tsx` - Products list
+- [ ] `src/web/routes/admin/products/gadgetbots/new.tsx` - Create form
+- [ ] `src/web/routes/admin/products/gadgetbots/$id/edit.tsx` - Edit form
+- [ ] `src/web/routes/admin/products/gadgetbots/$id/index.tsx` - Detail view
 
-### Migrations
-- Initial gadgetbots table migration
+### Updated Files (Completed)
+
+- [x] `src/domains/products/gadgetbot.ts` - Implemented all CRUD operations
+- [x] `src/env.ts` - Added DATABASE_URL validation and Node.js support
+- [x] `package.json` - Added database scripts
+- [ ] `src/domains/products.ts` - Add authorization wrapper
+- [ ] `src/orpc/router/index.ts` - Export products router
+- [ ] `CLAUDE.md` - Document database layer
+
+### Migrations (Completed)
+
+- [x] Initial gadgetbots table migration (`0000_loud_morg.sql`)
 
 ---
 

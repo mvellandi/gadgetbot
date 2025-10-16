@@ -360,7 +360,7 @@ npm run repl
 
 // Delete
 > await Products.GadgetBot.deleteById("uuid")
-// Returns: void
+// Returns: { id: "uuid", name: "CleanBot 3000", ... } (deleted item for confirmation)
 ```
 
 **Database Configuration:**
