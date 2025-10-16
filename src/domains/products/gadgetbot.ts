@@ -8,7 +8,7 @@ import { Schema as S } from "effect"
  */
 
 // Type-specific defaults for description and features
-const TYPE_DEFAULTS = {
+export const TYPE_DEFAULTS = {
 	cleaning: {
 		description: "Advanced cleaning robot for home maintenance",
 		features: ["vacuuming", "mopping", "dusting", "window cleaning"],
@@ -23,26 +23,34 @@ const TYPE_DEFAULTS = {
 	},
 } as const
 
+/**
+ * GadgetBot resource operations
+ */
 export const GadgetBot = {
 	/**
-	 * Creates a new GadgetBot input with type-specific defaults
-	 * For admin use when adding new bot inventory to the database
-	 * @param type - The type of GadgetBot to create
-	 * @returns A CreateGadgetBotInput with type-specific defaults and empty name
+	 * Returns a new GadgetBot input template with minimal defaults
+	 * Type and other fields should be filled in by the user/form
 	 */
-	new: (type: "cleaning" | "gardening" | "security"): CreateGadgetBotInput => {
-		const defaults = TYPE_DEFAULTS[type]
-
+	new: (): CreateGadgetBotInput => {
 		return {
 			name: "",
-			type,
-			description: defaults.description,
-			status: "available",
+			type: "cleaning",
+			description: "",
 			batteryLife: 8.0,
 			maxLoadCapacity: 10.0,
-			features: [...defaults.features],
+			features: [],
 			imageUrl: undefined,
 		}
+	},
+
+	/**
+	 * Creates a new GadgetBot
+	 * Future: Will validate and persist to database
+	 */
+	create: async (_input: CreateGadgetBotInput): Promise<GadgetBotItem> => {
+		// TODO: Validate input
+		// TODO: Persist to database
+		throw new Error("Not implemented: Database layer not yet available")
 	},
 }
 
@@ -88,7 +96,7 @@ export type GadgetBotItem = typeof GadgetBotItem.Type
 // Input schemas derived from main schema (like Ecto changesets)
 // For creating: omit server-generated fields
 export const CreateGadgetBotInput = S.Struct(GadgetBotItem.fields).pipe(
-	S.omit("id", "createdAt", "updatedAt"),
+	S.omit("id", "status", "createdAt", "updatedAt"),
 )
 
 export type CreateGadgetBotInput = typeof CreateGadgetBotInput.Type
