@@ -1,4 +1,6 @@
-import { Schema as S } from "effect"
+import { Schema as S, Effect } from "effect"
+import * as GadgetBotService from "@/db/services/gadgetbot"
+import type { GadgetBotRow } from "@/db/schema"
 
 /**
  * GadgetBot Resource
@@ -6,6 +8,26 @@ import { Schema as S } from "effect"
  * Represents a robotic helper that homeowners can rent for various tasks.
  * Inspired by the gadgetbots from Ratchet & Clank.
  */
+
+/**
+ * Convert database row to domain model
+ * Handles null -> undefined conversion for optional fields
+ */
+function rowToModel(row: GadgetBotRow): GadgetBotItem {
+	return {
+		id: row.id,
+		name: row.name,
+		type: row.type as "cleaning" | "gardening" | "security",
+		status: row.status as "available" | "rented" | "maintenance" | "retired",
+		description: row.description,
+		batteryLife: row.batteryLife,
+		maxLoadCapacity: row.maxLoadCapacity,
+		features: [...row.features],
+		imageUrl: row.imageUrl ?? undefined,
+		createdAt: row.createdAt.toISOString() as any,
+		updatedAt: row.updatedAt.toISOString() as any,
+	}
+}
 
 // Type-specific defaults for description and features
 export const TYPE_DEFAULTS = {
@@ -45,12 +67,107 @@ export const GadgetBot = {
 
 	/**
 	 * Creates a new GadgetBot
-	 * Future: Will validate and persist to database
+	 * Validates input with Effect Schema and persists to database
 	 */
-	create: async (_input: CreateGadgetBotInput): Promise<GadgetBotItem> => {
-		// TODO: Validate input
-		// TODO: Persist to database
-		throw new Error("Not implemented: Database layer not yet available")
+	create: async (input: CreateGadgetBotInput): Promise<GadgetBotItem> => {
+		// Validate input with Effect Schema
+		const validated = S.decodeUnknownSync(CreateGadgetBotInput)(input)
+
+		// Create in database
+		const effect = Effect.gen(function* () {
+			const result = yield* GadgetBotService.createGadgetBot({
+				name: validated.name,
+				type: validated.type,
+				description: validated.description,
+				batteryLife: validated.batteryLife,
+				maxLoadCapacity: validated.maxLoadCapacity,
+				features: [...validated.features],
+				imageUrl: validated.imageUrl ?? null,
+			})
+
+			return rowToModel(result)
+		}).pipe(
+			Effect.catchTag("Database", (error) =>
+				Effect.fail(new Error(`Database error: ${error.operation}`)),
+			),
+		)
+
+		return Effect.runPromise(effect)
+	},
+
+	/**
+	 * Find a GadgetBot by ID
+	 */
+	findById: async (id: string): Promise<GadgetBotItem> => {
+		const effect = GadgetBotService.findGadgetBotById(id).pipe(
+			Effect.map(rowToModel),
+			Effect.catchTag("NotFound", (error) =>
+				Effect.fail(new Error(`GadgetBot ${error.id} not found`)),
+			),
+			Effect.catchTag("Database", (error) =>
+				Effect.fail(new Error(`Database error: ${error.operation}`)),
+			),
+		)
+
+		return Effect.runPromise(effect)
+	},
+
+	/**
+	 * Find all GadgetBots
+	 */
+	findAll: async (): Promise<GadgetBotItem[]> => {
+		const effect = GadgetBotService.findAllGadgetBots().pipe(
+			Effect.map((rows) => rows.map(rowToModel)),
+			Effect.catchTag("Database", (error) =>
+				Effect.fail(new Error(`Database error: ${error.operation}`)),
+			),
+		)
+
+		return Effect.runPromise(effect)
+	},
+
+	/**
+	 * Update a GadgetBot
+	 */
+	update: async (
+		id: string,
+		input: Partial<
+			Omit<CreateGadgetBotInput, "id" | "createdAt" | "updatedAt">
+		>,
+	): Promise<GadgetBotItem> => {
+		const effect = GadgetBotService.updateGadgetBot(id, {
+			...input,
+			features: input.features ? [...input.features] : undefined,
+			imageUrl: input.imageUrl ?? null,
+		}).pipe(
+			Effect.map(rowToModel),
+			Effect.catchTag("NotFound", (error) =>
+				Effect.fail(new Error(`GadgetBot ${error.id} not found`)),
+			),
+			Effect.catchTag("Database", (error) =>
+				Effect.fail(new Error(`Database error: ${error.operation}`)),
+			),
+		)
+
+		return Effect.runPromise(effect)
+	},
+
+	/**
+	 * Delete a GadgetBot by ID
+	 * Returns the deleted GadgetBot for confirmation
+	 */
+	deleteById: async (id: string): Promise<GadgetBotItem> => {
+		const effect = GadgetBotService.deleteGadgetBot(id).pipe(
+			Effect.map(rowToModel),
+			Effect.catchTag("NotFound", (error) =>
+				Effect.fail(new Error(`GadgetBot ${error.id} not found`)),
+			),
+			Effect.catchTag("Database", (error) =>
+				Effect.fail(new Error(`Database error: ${error.operation}`)),
+			),
+		)
+
+		return Effect.runPromise(effect)
 	},
 }
 
