@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminProductsIndexRouteImport } from './routes/admin/products/index'
 import { Route as ApiRpcSplatRouteImport } from './routes/api.rpc.$'
 import { Route as AdminProductsGadgetbotsNewRouteImport } from './routes/admin/products/gadgetbots/new'
@@ -19,6 +20,11 @@ import { Route as AdminProductsGadgetbotsIdEditRouteImport } from './routes/admi
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/admin/',
+  path: '/admin/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminProductsIndexRoute = AdminProductsIndexRouteImport.update({
@@ -52,6 +58,7 @@ const AdminProductsGadgetbotsIdEditRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminIndexRoute
   '/api/rpc/$': typeof ApiRpcSplatRoute
   '/admin/products': typeof AdminProductsIndexRoute
   '/admin/products/gadgetbots/new': typeof AdminProductsGadgetbotsNewRoute
@@ -60,6 +67,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin': typeof AdminIndexRoute
   '/api/rpc/$': typeof ApiRpcSplatRoute
   '/admin/products': typeof AdminProductsIndexRoute
   '/admin/products/gadgetbots/new': typeof AdminProductsGadgetbotsNewRoute
@@ -69,6 +77,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin/': typeof AdminIndexRoute
   '/api/rpc/$': typeof ApiRpcSplatRoute
   '/admin/products/': typeof AdminProductsIndexRoute
   '/admin/products/gadgetbots/new': typeof AdminProductsGadgetbotsNewRoute
@@ -79,6 +88,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/admin'
     | '/api/rpc/$'
     | '/admin/products'
     | '/admin/products/gadgetbots/new'
@@ -87,6 +97,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/admin'
     | '/api/rpc/$'
     | '/admin/products'
     | '/admin/products/gadgetbots/new'
@@ -95,6 +106,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/admin/'
     | '/api/rpc/$'
     | '/admin/products/'
     | '/admin/products/gadgetbots/new'
@@ -104,6 +116,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminIndexRoute: typeof AdminIndexRoute
   ApiRpcSplatRoute: typeof ApiRpcSplatRoute
   AdminProductsIndexRoute: typeof AdminProductsIndexRoute
   AdminProductsGadgetbotsNewRoute: typeof AdminProductsGadgetbotsNewRoute
@@ -118,6 +131,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/': {
+      id: '/admin/'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/products/': {
@@ -160,6 +180,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminIndexRoute: AdminIndexRoute,
   ApiRpcSplatRoute: ApiRpcSplatRoute,
   AdminProductsIndexRoute: AdminProductsIndexRoute,
   AdminProductsGadgetbotsNewRoute: AdminProductsGadgetbotsNewRoute,
