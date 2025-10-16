@@ -34,31 +34,25 @@ async function testDomainAPI() {
 			console.log("   ✅ Found:", bot.name)
 		}
 
-		// Test 4: Create
+		// Test 4: Create (specs are auto-merged from type)
 		console.log("\n4️⃣  Testing Products.GadgetBot.create()...")
 		const newBot = await Products.GadgetBot.create({
 			name: "TestBot 3000",
 			type: "cleaning",
-			description: "A test cleaning robot",
-			batteryLife: 6.0,
-			maxLoadCapacity: 15.0,
-			features: ["test feature 1", "test feature 2"],
-			imageUrl: undefined,
 		})
 		console.log("   ✅ Created:", {
 			id: newBot.id,
 			name: newBot.name,
 			type: newBot.type,
+			description: newBot.description,
 		})
 
-		// Test 5: Update
+		// Test 5: Update (only batteryLife is editable)
 		console.log(`\n5️⃣  Testing Products.GadgetBot.update('${newBot.id}')...`)
 		const updated = await Products.GadgetBot.update(newBot.id, {
-			name: "TestBot 3000 Updated",
-			batteryLife: 8.0,
+			batteryLife: 6.5,
 		})
 		console.log("   ✅ Updated:", {
-			name: updated.name,
 			batteryLife: updated.batteryLife,
 		})
 

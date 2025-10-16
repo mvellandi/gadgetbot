@@ -27,29 +27,27 @@ async function test() {
 			const found = await GadgetBot.findById(first.id)
 			console.log(`✅ Found: ${found.name}\n`)
 
-			// Test update
+			// Test update (only batteryLife is editable)
 			console.log(`📝 Testing update for "${first.name}"...`)
+			const originalBattery = first.batteryLife
 			const updated = await GadgetBot.update(first.id, {
-				description: `${first.description} (Updated!)`,
+				batteryLife: originalBattery - 1,
 			})
-			console.log(`✅ Updated description: ${updated.description}\n`)
+			console.log(`✅ Updated batteryLife: ${originalBattery}h → ${updated.batteryLife}h\n`)
 
 			// Revert the update
 			await GadgetBot.update(first.id, {
-				description: first.description,
+				batteryLife: originalBattery,
 			})
 
-			// Test create and delete (to verify delete returns the deleted item)
+			// Test create and delete (specs are now auto-merged from type)
 			console.log("➕ Testing create operation...")
 			const newBot = await GadgetBot.create({
 				name: "TestBot 9000",
 				type: "cleaning",
-				description: "Temporary test bot",
-				batteryLife: 5.0,
-				maxLoadCapacity: 7.0,
-				features: ["test-feature"],
 			})
-			console.log(`✅ Created: ${newBot.name} (ID: ${newBot.id})\n`)
+			console.log(`✅ Created: ${newBot.name} (ID: ${newBot.id})`)
+			console.log(`   Type: ${newBot.type} | Specs auto-applied: ${newBot.description}\n`)
 
 			// Test delete
 			console.log(`🗑️  Testing delete for "${newBot.name}"...`)

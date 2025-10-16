@@ -64,6 +64,7 @@ export const gadgetbots = {
 
 	/**
 	 * Update an existing GadgetBot
+	 * Only allows updating batteryLife to reflect actual unit condition
 	 * Requires admin authorization (TODO: enforce via Zitadel)
 	 */
 	update: os
@@ -74,7 +75,7 @@ export const gadgetbots = {
 						S.nonEmptyString(),
 						S.annotations({ description: "GadgetBot ID (UUID)" }),
 					),
-					data: S.partial(Products.GadgetBot.Schemas.CreateInput),
+					data: Products.GadgetBot.Schemas.UpdateInput,
 				}),
 			),
 		)

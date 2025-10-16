@@ -26,6 +26,57 @@ const GadgetBotStatusSchema = S.Literal(
 	"retired",
 )
 
+// Bot Specifications - Each type has fixed specs (like product models/SKUs)
+// These define the immutable characteristics of each bot type
+const BOT_SPECS = {
+	cleaning: {
+		type: "cleaning" as const,
+		description:
+			"Advanced cleaning robot with multi-surface detection and adaptive cleaning modes. Perfect for maintaining spotless homes with minimal effort.",
+		batteryLife: 8,
+		maxLoadCapacity: 15,
+		features: [
+			"Multi-surface cleaning",
+			"Auto-recharge capability",
+			"Spot cleaning mode",
+			"Edge detection sensors",
+			"HEPA filtration system",
+		],
+		imageUrl: null,
+	},
+	gardening: {
+		type: "gardening" as const,
+		description:
+			"Autonomous gardening assistant for lawn maintenance and basic landscaping tasks. Weather-resistant design for year-round outdoor use.",
+		batteryLife: 12,
+		maxLoadCapacity: 25,
+		features: [
+			"Precision mowing patterns",
+			"Weed detection and removal",
+			"Weather-resistant housing",
+			"Terrain mapping",
+			"Solar charging support",
+		],
+		imageUrl: null,
+	},
+	security: {
+		type: "security" as const,
+		description:
+			"Intelligent security patrol unit with advanced threat detection capabilities. Provides 24/7 monitoring and immediate alert notifications.",
+		batteryLife: 24,
+		maxLoadCapacity: 10,
+		features: [
+			"24/7 autonomous patrol mode",
+			"Motion detection sensors",
+			"Facial recognition AI",
+			"Real-time alert system",
+			"Night vision cameras",
+			"Emergency response protocol",
+		],
+		imageUrl: null,
+	},
+} as const
+
 // Main GadgetBot schema
 const GadgetBotItemSchema = S.Struct({
 	id: S.String,
@@ -51,31 +102,23 @@ const GadgetBotItemSchema = S.Struct({
 	updatedAt: S.DateTimeUtc,
 })
 
-// CREATE - Input schema for creating: omit server-generated fields
-const CreateGadgetBotInputSchema = S.Struct(GadgetBotItemSchema.fields).pipe(
-	S.omit("id", "status", "createdAt", "updatedAt"),
-)
+// User input schemas - only fields user can provide
+const CreateInputSchema = S.Struct({
+	name: S.String.pipe(S.nonEmptyString()),
+	type: GadgetBotTypeSchema,
+})
 
-// UPDATE - For updating: require id, make user-editable fields optional
-const updateableFields = S.Struct(GadgetBotItemSchema.fields).pipe(
-	S.omit(
-		"id",
-		"description",
-		"features",
-		"maxLoadCapacity",
-		"createdAt",
-		"updatedAt",
-	),
-)
-
-const UpdateGadgetBotInputSchema = S.Struct({
-	id: S.String,
-}).pipe(S.extend(S.partial(updateableFields)))
+const UpdateInputSchema = S.Struct({
+	batteryLife: S.optional(S.Number.pipe(S.greaterThan(0))),
+})
 
 // Type definitions
 type GadgetBotItem = typeof GadgetBotItemSchema.Type
-type CreateGadgetBotInput = typeof CreateGadgetBotInputSchema.Type
-type UpdateGadgetBotInput = typeof UpdateGadgetBotInputSchema.Type
+type GadgetBotType = typeof GadgetBotTypeSchema.Type
+type GadgetBotStatus = typeof GadgetBotStatusSchema.Type
+type CreateInput = typeof CreateInputSchema.Type
+type UpdateInput = typeof UpdateInputSchema.Type
+type BotSpec = typeof BOT_SPECS.cleaning
 
 /**
  * Convert database row to domain model
@@ -85,8 +128,8 @@ function rowToModel(row: GadgetBotRow): GadgetBotItem {
 	return {
 		id: row.id,
 		name: row.name,
-		type: row.type as "cleaning" | "gardening" | "security",
-		status: row.status as "available" | "rented" | "maintenance" | "retired",
+		type: row.type as GadgetBotType,
+		status: row.status as GadgetBotStatus,
 		description: row.description,
 		batteryLife: row.batteryLife,
 		maxLoadCapacity: row.maxLoadCapacity,
@@ -100,8 +143,8 @@ function rowToModel(row: GadgetBotRow): GadgetBotItem {
 // Schemas object for API layer
 const Schemas = {
 	Item: GadgetBotItemSchema,
-	CreateInput: CreateGadgetBotInputSchema,
-	UpdateInput: UpdateGadgetBotInputSchema,
+	CreateInput: CreateInputSchema,
+	UpdateInput: UpdateInputSchema,
 	Type: GadgetBotTypeSchema,
 	Status: GadgetBotStatusSchema,
 } as const
@@ -109,8 +152,9 @@ const Schemas = {
 // Types interface for consumers
 type Types = {
 	Item: GadgetBotItem
-	CreateInput: CreateGadgetBotInput
-	UpdateInput: UpdateGadgetBotInput
+	CreateInput: CreateInput
+	UpdateInput: UpdateInput
+	BotSpec: BotSpec
 }
 
 /**
@@ -123,39 +167,41 @@ export const GadgetBot = {
 	// ========================================
 
 	/**
-	 * Returns a new GadgetBot input template with minimal defaults
-	 * Type and other fields should be filled in by the user/form
+	 * Returns a new GadgetBot input template and all bot specs
+	 * Template has no type selected - user must choose
+	 * Specs contain fixed specifications for each bot type
 	 */
-	new: (): CreateGadgetBotInput => {
+	new: () => {
 		return {
-			name: "",
-			type: "cleaning",
-			description: "",
-			batteryLife: 8.0,
-			maxLoadCapacity: 10.0,
-			features: [],
-			imageUrl: undefined,
+			template: {
+				name: "",
+				type: undefined as GadgetBotType | undefined,
+			},
+			specs: BOT_SPECS,
 		}
 	},
 
 	/**
 	 * Creates a new GadgetBot
-	 * Validates input with Effect Schema and persists to database
+	 * Merges user input with bot specs and persists to database
 	 */
-	create: async (input: CreateGadgetBotInput): Promise<GadgetBotItem> => {
-		// Validate input with Effect Schema
-		const validated = S.decodeUnknownSync(CreateGadgetBotInputSchema)(input)
+	create: async (input: CreateInput): Promise<GadgetBotItem> => {
+		// Validate user input with CreateInputSchema
+		const validated = S.decodeUnknownSync(CreateInputSchema)(input)
 
-		// Create in database
+		// Get specs for the selected type
+		const spec = BOT_SPECS[validated.type]
+
+		// Create in database with merged data
 		const effect = Effect.gen(function* () {
 			const result = yield* GadgetBotService.createGadgetBot({
 				name: validated.name,
-				type: validated.type,
-				description: validated.description,
-				batteryLife: validated.batteryLife,
-				maxLoadCapacity: validated.maxLoadCapacity,
-				features: [...validated.features],
-				imageUrl: validated.imageUrl ?? null,
+				type: spec.type,
+				description: spec.description,
+				batteryLife: spec.batteryLife,
+				maxLoadCapacity: spec.maxLoadCapacity,
+				features: [...spec.features],
+				imageUrl: spec.imageUrl,
 			})
 
 			return rowToModel(result)
@@ -201,16 +247,20 @@ export const GadgetBot = {
 
 	/**
 	 * Update a GadgetBot
+	 * Allows updating batteryLife to reflect actual condition
+	 * All other fields (name, type, description, features, etc.) are immutable
 	 */
-	update: async (
-		id: string,
-		input: Partial<Omit<CreateGadgetBotInput, "id" | "createdAt" | "updatedAt">>,
-	): Promise<GadgetBotItem> => {
-		const effect = GadgetBotService.updateGadgetBot(id, {
-			...input,
-			features: input.features ? [...input.features] : undefined,
-			imageUrl: input.imageUrl ?? null,
-		}).pipe(
+	update: async (id: string, input: UpdateInput): Promise<GadgetBotItem> => {
+		// Validate update input
+		const validated = S.decodeUnknownSync(UpdateInputSchema)(input)
+
+		// Build update object, only including defined fields
+		const updateData: Partial<{ batteryLife: number }> = {}
+		if (validated.batteryLife !== undefined) {
+			updateData.batteryLife = validated.batteryLife
+		}
+
+		const effect = GadgetBotService.updateGadgetBot(id, updateData).pipe(
 			Effect.map(rowToModel),
 			Effect.catchTag("NotFound", (error) =>
 				Effect.fail(new Error(`GadgetBot ${error.id} not found`)),
@@ -244,6 +294,12 @@ export const GadgetBot = {
 	// ========================================
 	// Schemas and Types
 	// ========================================
+
+	/**
+	 * Bot specifications - fixed characteristics for each bot type
+	 * Used by forms and create operations to populate type-specific fields
+	 */
+	Specs: BOT_SPECS,
 
 	/**
 	 * Effect Schemas for use by oRPC, forms, etc.
