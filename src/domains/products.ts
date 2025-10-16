@@ -21,6 +21,7 @@ export const Products = {
 	 * Future: Will check auth policies before delegating to resource
 	 */
 	GadgetBot: {
+		// Operations
 		/**
 		 * Returns a new GadgetBot template for forms
 		 */
@@ -35,5 +36,45 @@ export const Products = {
 			// await checkPolicy('gadgetbot:create')
 			return GadgetBotResource.create(...args)
 		},
+
+		/**
+		 * Find all GadgetBots
+		 * Public access for browsing catalog
+		 */
+		findAll: GadgetBotResource.findAll,
+
+		/**
+		 * Find a GadgetBot by ID
+		 * Public access for viewing details
+		 */
+		findById: GadgetBotResource.findById,
+
+		/**
+		 * Update a GadgetBot
+		 * Future: Will check admin authorization via Zitadel
+		 */
+		update: async (...args: Parameters<typeof GadgetBotResource.update>) => {
+			// TODO: Check authorization (admin only)
+			// await checkPolicy('gadgetbot:update')
+			return GadgetBotResource.update(...args)
+		},
+
+		/**
+		 * Delete a GadgetBot by ID
+		 * Future: Will check admin authorization via Zitadel
+		 */
+		deleteById: async (
+			...args: Parameters<typeof GadgetBotResource.deleteById>
+		) => {
+			// TODO: Check authorization (admin only)
+			// await checkPolicy('gadgetbot:delete')
+			return GadgetBotResource.deleteById(...args)
+		},
+
+		// Effect Schemas for API layer (oRPC, forms)
+		Schemas: GadgetBotResource.Schemas,
+
+		// TypeScript types for consumers
+		Types: GadgetBotResource.Types,
 	},
 }

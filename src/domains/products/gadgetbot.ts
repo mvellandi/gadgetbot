@@ -7,7 +7,75 @@ import type { GadgetBotRow } from "@/db/schema"
  *
  * Represents a robotic helper that homeowners can rent for various tasks.
  * Inspired by the gadgetbots from Ratchet & Clank.
+ *
+ * This module exports a single GadgetBot object containing:
+ * - Operations: CRUD functions
+ * - Schemas: Effect Schemas for API layer
+ * - Types: TypeScript type definitions
  */
+
+// Schemas - Effect Schema definitions
+
+// Enums for GadgetBot properties
+const GadgetBotTypeSchema = S.Literal("cleaning", "gardening", "security")
+
+const GadgetBotStatusSchema = S.Literal(
+	"available",
+	"rented",
+	"maintenance",
+	"retired",
+)
+
+// Main GadgetBot schema
+const GadgetBotItemSchema = S.Struct({
+	id: S.String,
+	name: S.String,
+	type: GadgetBotTypeSchema,
+	status: GadgetBotStatusSchema,
+	description: S.String,
+
+	// Capabilities
+	batteryLife: S.Number.pipe(
+		S.greaterThan(0),
+		S.annotations({ description: "Battery life in hours" }),
+	),
+	maxLoadCapacity: S.Number.pipe(
+		S.greaterThan(0),
+		S.annotations({ description: "Maximum load capacity in kg" }),
+	),
+	features: S.Array(S.String),
+
+	// Metadata
+	imageUrl: S.optional(S.String),
+	createdAt: S.DateTimeUtc,
+	updatedAt: S.DateTimeUtc,
+})
+
+// CREATE - Input schema for creating: omit server-generated fields
+const CreateGadgetBotInputSchema = S.Struct(GadgetBotItemSchema.fields).pipe(
+	S.omit("id", "status", "createdAt", "updatedAt"),
+)
+
+// UPDATE - For updating: require id, make user-editable fields optional
+const updateableFields = S.Struct(GadgetBotItemSchema.fields).pipe(
+	S.omit(
+		"id",
+		"description",
+		"features",
+		"maxLoadCapacity",
+		"createdAt",
+		"updatedAt",
+	),
+)
+
+const UpdateGadgetBotInputSchema = S.Struct({
+	id: S.String,
+}).pipe(S.extend(S.partial(updateableFields)))
+
+// Type definitions
+type GadgetBotItem = typeof GadgetBotItemSchema.Type
+type CreateGadgetBotInput = typeof CreateGadgetBotInputSchema.Type
+type UpdateGadgetBotInput = typeof UpdateGadgetBotInputSchema.Type
 
 /**
  * Convert database row to domain model
@@ -29,26 +97,31 @@ function rowToModel(row: GadgetBotRow): GadgetBotItem {
 	}
 }
 
-// Type-specific defaults for description and features
-export const TYPE_DEFAULTS = {
-	cleaning: {
-		description: "Advanced cleaning robot for home maintenance",
-		features: ["vacuuming", "mopping", "dusting", "window cleaning"],
-	},
-	gardening: {
-		description: "Autonomous gardening assistant for lawn and plant care",
-		features: ["mowing", "trimming", "watering", "weeding"],
-	},
-	security: {
-		description: "Intelligent security robot for home monitoring",
-		features: ["patrol", "motion detection", "alarm system", "video recording"],
-	},
+// Schemas object for API layer
+const Schemas = {
+	Item: GadgetBotItemSchema,
+	CreateInput: CreateGadgetBotInputSchema,
+	UpdateInput: UpdateGadgetBotInputSchema,
+	Type: GadgetBotTypeSchema,
+	Status: GadgetBotStatusSchema,
 } as const
 
+// Types interface for consumers
+type Types = {
+	Item: GadgetBotItem
+	CreateInput: CreateGadgetBotInput
+	UpdateInput: UpdateGadgetBotInput
+}
+
 /**
- * GadgetBot resource operations
+ * GadgetBot resource operations, schemas, and types
+ * Single export for the entire GadgetBot domain
  */
 export const GadgetBot = {
+	// ========================================
+	// Operations
+	// ========================================
+
 	/**
 	 * Returns a new GadgetBot input template with minimal defaults
 	 * Type and other fields should be filled in by the user/form
@@ -71,7 +144,7 @@ export const GadgetBot = {
 	 */
 	create: async (input: CreateGadgetBotInput): Promise<GadgetBotItem> => {
 		// Validate input with Effect Schema
-		const validated = S.decodeUnknownSync(CreateGadgetBotInput)(input)
+		const validated = S.decodeUnknownSync(CreateGadgetBotInputSchema)(input)
 
 		// Create in database
 		const effect = Effect.gen(function* () {
@@ -131,9 +204,7 @@ export const GadgetBot = {
 	 */
 	update: async (
 		id: string,
-		input: Partial<
-			Omit<CreateGadgetBotInput, "id" | "createdAt" | "updatedAt">
-		>,
+		input: Partial<Omit<CreateGadgetBotInput, "id" | "createdAt" | "updatedAt">>,
 	): Promise<GadgetBotItem> => {
 		const effect = GadgetBotService.updateGadgetBot(id, {
 			...input,
@@ -169,63 +240,20 @@ export const GadgetBot = {
 
 		return Effect.runPromise(effect)
 	},
+
+	// ========================================
+	// Schemas and Types
+	// ========================================
+
+	/**
+	 * Effect Schemas for use by oRPC, forms, etc.
+	 * Maintains clean boundaries - API layer accesses through domain, not resources
+	 */
+	Schemas,
+
+	/**
+	 * TypeScript types for use by consumers
+	 * Exported through domain API to maintain boundaries
+	 */
+	Types: {} as Types,
 }
-
-// Enums for GadgetBot properties
-export const GadgetBotType = S.Literal("cleaning", "gardening", "security")
-
-export const GadgetBotStatus = S.Literal(
-	"available",
-	"rented",
-	"maintenance",
-	"retired",
-)
-
-// Main GadgetBot S
-export const GadgetBotItem = S.Struct({
-	id: S.String,
-	name: S.String,
-	type: GadgetBotType,
-	status: GadgetBotStatus,
-	description: S.String,
-
-	// Capabilities
-	batteryLife: S.Number.pipe(
-		S.greaterThan(0),
-		S.annotations({ description: "Battery life in hours" }),
-	),
-	maxLoadCapacity: S.Number.pipe(
-		S.greaterThan(0),
-		S.annotations({ description: "Maximum load capacity in kg" }),
-	),
-	features: S.Array(S.String),
-
-	// Metadata
-	imageUrl: S.optional(S.String),
-	createdAt: S.DateTimeUtc,
-	updatedAt: S.DateTimeUtc,
-})
-
-// Type inference
-export type GadgetBotItem = typeof GadgetBotItem.Type
-
-// CREATE
-// Input schemas derived from main schema (like Ecto changesets)
-// For creating: omit server-generated fields
-export const CreateGadgetBotInput = S.Struct(GadgetBotItem.fields).pipe(
-	S.omit("id", "status", "createdAt", "updatedAt"),
-)
-
-export type CreateGadgetBotInput = typeof CreateGadgetBotInput.Type
-
-// UPDATE
-// For updating: require id, make user-editable fields optional
-const updateableFields = S.Struct(GadgetBotItem.fields).pipe(
-	S.omit("id", "description", "features", "maxLoadCapacity", "createdAt", "updatedAt"),
-)
-
-export const UpdateGadgetBotInput = S.Struct({
-	id: S.String,
-}).pipe(S.extend(S.partial(updateableFields)))
-
-export type UpdateGadgetBotInput = typeof UpdateGadgetBotInput.Type

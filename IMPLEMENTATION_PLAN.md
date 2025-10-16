@@ -16,12 +16,19 @@
   - Effect Schema validation
   - Clean Promise-based API
   - Delete returns deleted item for confirmation
+  - Domain API with authorization placeholders
+  - Test script validates all operations
+- **Phase 3: oRPC Endpoints (Complete)**
+  - Type-safe RPC procedures for all CRUD operations
+  - Clean boundary: only imports from domain API
+  - Schemas exported through Products.GadgetBot.Schemas
+  - Standard Schema V1 wrapping for oRPC compatibility
 
 ### 🚧 Next Up
 1. ~~Database layer (schema + services)~~ ✅
 2. ~~Domain operations (CRUD)~~ ✅
-3. Domain API (authorization wrapper)
-4. oRPC endpoints
+3. ~~Domain API (authorization wrapper)~~ ✅
+4. ~~oRPC endpoints~~ ✅
 5. Admin interface with forms
 
 ---
@@ -71,29 +78,29 @@ Update `GadgetBot` resource to call database services:
 - [x] Add `rowToModel()` helper for null/undefined conversion
 - [x] Test all operations with CLI test script
 
-### 2.2 Domain API
+### 2.2 Domain API ✅
 
 **File:** `src/domains/products.ts`
 
-- [ ] Add all CRUD operations to `Products.GadgetBot`
-- [ ] Wrap write operations with auth placeholders
-- [ ] Test via REPL
+- [x] Add all CRUD operations to `Products.GadgetBot`
+- [x] Wrap write operations with auth placeholders
+- [x] Test via test script (npm run test:domain)
 
 ---
 
-## Phase 3: oRPC Endpoints
+## Phase 3: oRPC Endpoints ✅
 
 **File:** `src/orpc/router/products.ts`
 
-- [ ] Create `gadgetbots` router with procedures:
+- [x] Create `gadgetbots` router with procedures:
   - `new` - Get template
   - `list` - List all
   - `getById` - Get by ID
   - `create` - Create new (with Standard Schema validation)
   - `update` - Update existing
   - `deleteById` - Delete
-- [ ] Export from `src/orpc/router/index.ts`
-- [ ] Test endpoints
+- [x] Export from `src/orpc/router/index.ts`
+- [x] Verified clean boundaries (only imports from Products domain)
 
 ---
 
@@ -196,9 +203,10 @@ await Products.GadgetBot.deleteById(id)
 - [x] `src/db/seed.ts` - Seed data script
 - [x] `src/cli/reset-db.ts` - Database reset utility
 - [x] `src/cli/test-db.ts` - CRUD test script
+- [x] `src/cli/test-domain-api.ts` - Domain API test script
 - [x] `docker-compose.yml` - PostgreSQL container
 - [x] `drizzle.config.ts` - Drizzle Kit config
-- [ ] `src/orpc/router/products.ts` - oRPC endpoints
+- [x] `src/orpc/router/products.ts` - oRPC endpoints with gadgetbots procedures
 - [ ] `src/web/routes/admin/products/index.tsx` - Products list
 - [ ] `src/web/routes/admin/products/gadgetbots/new.tsx` - Create form
 - [ ] `src/web/routes/admin/products/gadgetbots/$id/edit.tsx` - Edit form
@@ -206,11 +214,11 @@ await Products.GadgetBot.deleteById(id)
 
 ### Updated Files (Completed)
 
-- [x] `src/domains/products/gadgetbot.ts` - Implemented all CRUD operations
+- [x] `src/domains/products/gadgetbot.ts` - Refactored with Schemas and Types namespaces
 - [x] `src/env.ts` - Added DATABASE_URL validation and Node.js support
-- [x] `package.json` - Added database scripts
-- [ ] `src/domains/products.ts` - Add authorization wrapper
-- [ ] `src/orpc/router/index.ts` - Export products router
+- [x] `package.json` - Added database scripts and test:domain script
+- [x] `src/domains/products.ts` - Added authorization wrapper and exposed Schemas/Types
+- [x] `src/orpc/router/index.ts` - Export gadgetbots procedures
 - [ ] `CLAUDE.md` - Document database layer
 
 ### Migrations (Completed)

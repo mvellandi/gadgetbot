@@ -18,7 +18,8 @@
     "db:migrate": "node --import tsx ./src/db/migrate.ts",
     "db:studio": "drizzle-kit studio",
     "db:seed": "node --import tsx --env-file=.env ./src/db/seed.ts",
-    "db:reset": "node --import tsx ./src/cli/reset-db.ts"
+    "db:reset": "node --import tsx ./src/cli/reset-db.ts",
+    "test:domain": "node --import tsx --env-file=.env ./src/cli/test-domain-api.ts"
   },
   "dependencies": {
     "@effect/platform": "^0.92.1",

@@ -1,6 +1,8 @@
 // Main oRPC router for GadgetBot application
 // Demo procedures moved to /src/demo/orpc/router/
 
+import { gadgetbots } from "./products.js"
+
 export default {
-	// Add your GadgetBot oRPC procedures here
+	gadgetbots,
 }
