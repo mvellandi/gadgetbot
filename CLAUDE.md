@@ -634,52 +634,46 @@ describe('ProductCard', () => {
 
 ### Domain-Driven Design (Inspired by Elixir Ash)
 
-**Domain Structure:**
-- Domains live in `src/domains/`
-- Each domain has a main API file: `src/domains/{domain}.ts`
-- Resources within domains: `src/domains/{domain}/{resource}.ts`
+**Two-Layer Architecture:**
 
-**Example - Products Domain:**
+1. **Resources Layer** (`src/domains/{domain}/{resource}.ts`)
+   - Define Effect schemas for data structures
+   - Export resource operations module (e.g., `GadgetBot`)
+   - Handle core business logic and data operations
+   - No authorization concerns
+   - See: [`src/domains/products/gadgetbot.ts`](src/domains/products/gadgetbot.ts)
+
+2. **Domain API Layer** (`src/domains/{domain}.ts`)
+   - Export domain module (e.g., `Products`)
+   - Control access to resource operations
+   - Handle authorization policies (future: Zitadel)
+   - Delegate to resource operations after auth checks
+   - See: [`src/domains/products.ts`](src/domains/products.ts)
+
+**Directory Structure:**
 ```
 src/domains/
-  products.ts              # Domain API exports (clean async functions)
+  products.ts              # Domain API with authorization layer
   products/
-    gadgetbot.ts          # GadgetBot resource with Effect schemas
+    gadgetbot.ts          # Resource: schemas + operations
 ```
 
-**Resource Pattern:**
-- Define schemas with Effect Schema
-- Export main schema, input schemas (Create/Update), and TypeScript types
-- Resources are pure data models, business logic goes in services
+**Key Principles:**
+- **Clean APIs**: Export async functions with no framework types exposed
+- **Standard Errors**: Throw standard Error classes, not Effect/Drizzle types
+- **Internal Effect**: Use Effect internally for composition/error handling
+- **Auth at Domain**: Authorization in domain layer, not resources
+- **Client Access**: oRPC, forms, CLI interact only with domain APIs
 
-**Domain API Design Philosophy:**
-- Domain APIs export **clean async functions** with no framework-specific types exposed
-- No Effect, Drizzle, or other implementation details in public signatures
-- Functions take plain inputs and return Promises of plain objects
-- Throw standard Error classes on failure
-- Implementation uses Effect internally for composition and error handling
-
-**Example Domain API:**
-```typescript
-// src/domains/products.ts - Public API
-export const GadgetBot = {
-  create: async (input: CreateGadgetBotInput): Promise<GadgetBot> => { /* ... */ },
-  findAll: async (): Promise<GadgetBot[]> => { /* ... */ },
-  findById: async (id: string): Promise<GadgetBot> => { /* ... */ },
-  update: async (id: string, input: UpdateGadgetBotInput): Promise<GadgetBot> => { /* ... */ },
-  deleteById: async (id: string): Promise<void> => { /* ... */ },
-}
-
-// Usage in REPL or application code:
-const Products = await import('./src/domains/products.js')
-await Products.GadgetBot.create({ name: "CleanBot", type: "cleaning" })
-await Products.GadgetBot.findAll()
-```
+**Implementation Reference:**
+- See [`IMPLEMENTATION_PLAN.md`](IMPLEMENTATION_PLAN.md) for complete workflow
+- Example resource: [`src/domains/products/gadgetbot.ts`](src/domains/products/gadgetbot.ts)
+- Example domain API: [`src/domains/products.ts`](src/domains/products.ts)
 
 **Current Domains:**
 - **Products**: GadgetBot rental inventory
-  - Types: cleaning, gardening, security
-  - Core properties: name, type, status, description, capabilities, metadata
+  - Resources: GadgetBot (cleaning, gardening, security types)
+  - Authorization: Admin-only creation (future: Zitadel policies)
 
 ## Standard Schema Integration
 
