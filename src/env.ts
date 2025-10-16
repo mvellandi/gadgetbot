@@ -13,6 +13,27 @@ const EnvSchema = Schema.Struct({
 	DATABASE_POOL_MIN: Schema.optional(Schema.Number.pipe(Schema.int())),
 	DATABASE_POOL_MAX: Schema.optional(Schema.Number.pipe(Schema.int())),
 
+	// Zitadel configuration
+	ZITADEL_ISSUER_URL: Schema.optional(Schema.String.pipe(Schema.startsWith("http"))),
+	ZITADEL_CLIENT_ID: Schema.optional(Schema.String.pipe(Schema.nonEmptyString())),
+	ZITADEL_CLIENT_SECRET: Schema.optional(Schema.String.pipe(Schema.nonEmptyString())),
+
+	// Better Auth configuration
+	BETTER_AUTH_SECRET: Schema.String.pipe(
+		Schema.nonEmptyString(),
+		Schema.minLength(32),
+		Schema.annotations({
+			description: "Secret key for Better Auth session encryption (min 32 characters)",
+		}),
+	),
+	BETTER_AUTH_URL: Schema.String.pipe(
+		Schema.nonEmptyString(),
+		Schema.startsWith("http"),
+		Schema.annotations({
+			description: "Base URL for Better Auth callbacks",
+		}),
+	),
+
 	// Client-side environment variables (must have VITE_ prefix)
 	VITE_APP_TITLE: Schema.optional(Schema.String.pipe(Schema.nonEmptyString())),
 });
