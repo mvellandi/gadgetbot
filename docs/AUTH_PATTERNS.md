@@ -19,7 +19,7 @@ Quick reference for working with authentication in the GadgetBot application.
 ```typescript
 // src/domains/your-domain.ts
 import { UnauthorizedError } from "@/lib/errors"
-import type { User } from "@/auth/server"
+import type { User } from "@/auth/types"
 
 function requireAuth(user: User | null | undefined): asserts user is User {
   if (!user) {
@@ -40,7 +40,7 @@ export const YourDomain = {
 
 ```typescript
 import { UnauthorizedError, ForbiddenError } from "@/lib/errors"
-import type { User } from "@/auth/server"
+import type { User } from "@/auth/types"
 
 function requireAdmin(user: User | null | undefined): asserts user is User {
   if (!user) {
@@ -351,6 +351,79 @@ try {
 
 ---
 
+## Client/Server Code Separation
+
+### ⚠️ Critical: Avoid Bundling Server Code into Client
+
+**Problem:** Server-only code (Better Auth, PostgreSQL) uses Node.js APIs (`Buffer`, `crypto`, `net`) that don't exist in browsers.
+
+### ✅ Pattern: Use Client-Safe Type Imports
+
+```typescript
+// ✅ GOOD - Import types from client-safe module
+import type { User, Session } from "@/auth/types"
+
+// ❌ BAD - Imports server module (brings Node.js dependencies)
+import type { User } from "@/auth/server"
+```
+
+### ✅ Pattern: Static Data in Separate Files
+
+```typescript
+// ✅ GOOD - Static data in separate file
+// src/domains/products/gadgetbot-specs.ts
+export const BOT_SPECS = {
+  cleaning: { batteryLife: 8, /* ... */ },
+  gardening: { batteryLife: 12, /* ... */ },
+}
+
+// Client component can import safely
+import { BOT_SPECS } from "@/domains/products/gadgetbot-specs"
+```
+
+```typescript
+// ❌ BAD - Client imports entire domain (pulls in database code)
+import { Products } from "@/domains/products"
+
+const specs = Products.GadgetBot.Specs // This pulls in database dependencies!
+```
+
+### ✅ Pattern: Server-Only Context Creation
+
+```typescript
+// ✅ GOOD - Context creation in server-only route handler
+// src/web/routes/api.rpc.$.ts
+import { auth } from "@/auth/server" // Only imported server-side
+
+async function createContext(request: Request): Promise<Context> {
+  const session = await auth.api.getSession({ headers: request.headers })
+  return { session: session?.session || null, user: session?.user || null }
+}
+```
+
+```typescript
+// ❌ BAD - Context creation in shared module (gets bundled to client)
+// src/orpc/context.ts
+import { auth } from "@/auth/server" // This gets bundled to client!
+
+export async function createContext(request: Request) { /* ... */ }
+```
+
+### Module Safety Checklist
+
+| Module | Safe for Client? | Notes |
+|--------|------------------|-------|
+| `@/auth/types` | ✅ Yes | Type definitions only |
+| `@/auth/server` | ❌ No | Better Auth instance, Node.js APIs |
+| `@/auth/client` | ✅ Yes | Browser-safe auth client |
+| `@/orpc/context` | ✅ Yes | Types only (after Phase 3 fix) |
+| `@/domains/products` | ❌ No | Imports database services |
+| `@/domains/products/gadgetbot-specs` | ✅ Yes | Static data only |
+| `@/db/*` | ❌ No | PostgreSQL client, Node.js APIs |
+| `@/web/*` | ✅ Yes | Client-side code |
+
+---
+
 ## Common Gotchas
 
 ### ❌ Don't: Skip Domain Auth Checks
@@ -428,6 +501,9 @@ function CreateButton() {
 | Redirect to login | `/login?redirect=${encodeURIComponent(path)}` |
 | Show 401 error | Redirect to `/401` or throw `UnauthorizedError` |
 | Show 403 error | Redirect to `/403` or throw `ForbiddenError` |
+| Import User/Session types | `import type { User, Session } from "@/auth/types"` |
+| Import static data for client | Create separate file (e.g., `gadgetbot-specs.ts`) |
+| Create server context | Inside route handler, not shared module |
 
 ---
 
