@@ -67,17 +67,11 @@ gadgetbot/
 
 ## Resource Requirements
 
-### Minimum (Hetzner CPX11 - €4.15/month)
+### Minimum
 - **CPU**: 2 vCPU
 - **RAM**: 2GB
 - **Storage**: 40GB
 - **Traffic**: Good for development/staging or low traffic
-
-### Recommended (Hetzner CPX21 - €8.90/month)
-- **CPU**: 3 vCPU
-- **RAM**: 4GB
-- **Storage**: 80GB
-- **Traffic**: Good for 100-500 concurrent users
 
 ### Resource Allocation
 
