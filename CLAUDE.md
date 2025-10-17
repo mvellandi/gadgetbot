@@ -18,6 +18,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   - [Styling](#styling-web-specific)
   - [Code Quality](#code-quality)
   - [Polyfills](#polyfills)
+  - [Authentication](#authentication)
 - [Important Patterns](#important-patterns)
   - [Creating API Endpoints](#creating-api-endpoints)
   - [Effect Error Handling](#effect-error-handling)
@@ -436,6 +437,39 @@ pnpx shadcn@latest add form
 - `src/polyfill.ts` provides Node.js 18 compatibility (File API)
 - Import at top of server entry points that use oRPC
 
+### Authentication
+
+> **Status:** ✅ Complete (Phase 7)
+
+This project uses **Zitadel OAuth** with **Better Auth** integration. For complete documentation, see:
+
+- 📖 [AUTH_SETUP.md](./docs/AUTH_SETUP.md) - Setup guide
+- 📖 [AUTH_PATTERNS.md](./docs/AUTH_PATTERNS.md) - Development patterns
+- 📊 [AUTH_IMPLEMENTATION_STATUS.md](./docs/AUTH_IMPLEMENTATION_STATUS.md) - Implementation tracking
+
+**Key Architecture:**
+
+```text
+User → Better Auth Client → Better Auth Server → Zitadel OAuth
+     ↓
+     oRPC Context → Domain Authorization → Database
+```
+
+**Core Features:**
+
+- Self-hosted Zitadel OAuth/OIDC provider
+- Session management (HTTP-only cookies, PKCE)
+- Protected routes with `beforeLoad` guards
+- Domain-level authorization checks
+- User authentication UI (login, user menu, sign out)
+
+**Key Files:**
+
+- [src/auth/server.ts](src/auth/server.ts) - Better Auth server config
+- [src/web/auth/client.ts](src/web/auth/client.ts) - Browser client
+- [src/orpc/context.ts](src/orpc/context.ts) - Authentication context for oRPC
+- [src/web/routes/admin.tsx](src/web/routes/admin.tsx) - Protected admin layout
+
 ## Important Patterns
 
 ### Creating API Endpoints
@@ -646,7 +680,7 @@ describe('ProductCard', () => {
 2. **Domain API Layer** (`src/domains/{domain}.ts`)
    - Export domain module (e.g., `Products`)
    - Control access to resource operations
-   - Handle authorization policies (future: Zitadel)
+   - Handle authorization policies (via Zitadel + Better Auth)
    - Delegate to resource operations after auth checks
    - See: [`src/domains/products.ts`](src/domains/products.ts)
 
@@ -673,7 +707,7 @@ src/domains/
 **Current Domains:**
 - **Products**: GadgetBot rental inventory
   - Resources: GadgetBot (cleaning, gardening, security types)
-  - Authorization: Admin-only creation (future: Zitadel policies)
+  - Authorization: Admin-only creation (enforced via Zitadel policies)
 
 ## Standard Schema Integration
 
