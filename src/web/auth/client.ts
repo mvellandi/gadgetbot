@@ -10,7 +10,11 @@ import { createAuthClient } from "better-auth/react"
  * - Social provider authentication
  */
 export const authClient = createAuthClient({
-	baseURL: typeof window !== "undefined" ? window.location.origin : undefined,
+	// Always use window.location.origin (client-side) or process.env for SSR
+	// Don't import env module here as it validates server-only vars (DATABASE_URL)
+	baseURL: typeof window !== "undefined"
+		? window.location.origin
+		: process.env.BETTER_AUTH_URL || "http://localhost:3000",
 })
 
 /**

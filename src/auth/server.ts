@@ -34,12 +34,16 @@ export const auth = betterAuth({
 						config: [
 							{
 								providerId: "zitadel",
-								discoveryUrl: `${env.ZITADEL_ISSUER_URL}/.well-known/openid-configuration`,
+								// Manually specify endpoints instead of using discoveryUrl
+								// This gives us more control and helps debug issues
+								authorizationUrl: `${env.ZITADEL_ISSUER_URL}/oauth/v2/authorize`,
+								tokenUrl: `${env.ZITADEL_ISSUER_URL}/oauth/v2/token`,
+								userInfoUrl: `${env.ZITADEL_ISSUER_URL}/oidc/v1/userinfo`,
 								clientId: env.ZITADEL_CLIENT_ID,
-								// No clientSecret needed - PKCE is used for public clients
 								clientSecret: env.ZITADEL_CLIENT_SECRET || "",
 								scopes: ["openid", "profile", "email", "offline_access"],
-								pkce: true, // PKCE eliminates need for client secret
+								pkce: true,
+								redirectURI: `${env.BETTER_AUTH_URL}/api/auth/callback/zitadel`,
 							},
 						],
 					}),

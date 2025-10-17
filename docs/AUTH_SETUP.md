@@ -80,17 +80,23 @@ Select "Refresh Token" to add it to "Grant Types", then click **Save**.
 Update your `.env` file with the Zitadel Client ID:
 
 ```bash
+# Database
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/gadgetbot
+
 # Zitadel Configuration
 ZITADEL_ISSUER_URL=http://localhost:8080
-ZITADEL_CLIENT_ID=your-client-id-here
+ZITADEL_CLIENT_ID=your-client-id-here@gadgetbot
 # ZITADEL_CLIENT_SECRET is not needed when using PKCE
 
-# Better Auth (already configured)
+# Better Auth
 BETTER_AUTH_SECRET=changeme-generate-a-random-32-character-secret
 BETTER_AUTH_URL=http://localhost:3000
 ```
 
-> **Why no Client Secret?** PKCE (Proof Key for Code Exchange) is a more secure OAuth flow that doesn't require a client secret. This prevents security issues if the client code is compromised.
+> **Important Notes:**
+> - **Client ID Format**: The Zitadel Client ID should end with `@gadgetbot` (or your organization name)
+> - **No Client Secret Needed**: PKCE (Proof Key for Code Exchange) is a more secure OAuth flow that doesn't require a client secret
+> - **BETTER_AUTH_URL**: Must be set for the authentication flow to work correctly (used for OAuth redirect URIs)
 
 ### Generate a Secure Better Auth Secret
 
@@ -161,7 +167,7 @@ The application will be available at: **http://localhost:3000**
 1. Navigate to: **http://localhost:3000/login**
 2. Click **Sign in with Zitadel**
 3. You'll be redirected to Zitadel's login page
-4. Sign in with your credentials (admin / Admin123!)
+4. Sign in with your credentials (admin@gadgetbot.localhost / Admin123!)
 5. Grant permission when prompted
 6. You'll be redirected back to `/admin/products`
 
@@ -218,6 +224,54 @@ Look for: `server is listening on [::]:8080`
 ### Issue: Session Not Persisting
 
 **Solution**: Check that cookies are enabled in your browser and that the `BETTER_AUTH_SECRET` is set correctly.
+
+### Issue: "Invalid URL" Error (TypeError: Invalid URL)
+
+**Symptoms**:
+- Browser page freezes after clicking "Sign in with Zitadel"
+- Server logs show: `TypeError: Invalid URL` with `input: 'undefined'`
+- Error occurs in `createAuthorizationURL` function
+
+**Root Causes & Solutions**:
+
+1. **Missing BETTER_AUTH_URL environment variable**
+   ```bash
+   # Ensure this is set in .env
+   BETTER_AUTH_URL=http://localhost:3000
+   ```
+
+2. **Client-side auth client has undefined baseURL**
+   - The auth client in `src/web/auth/client.ts` must use `process.env.BETTER_AUTH_URL` for SSR
+   - Don't import `env` module in client-side code (it validates server-only vars like `DATABASE_URL`)
+   - Fixed pattern:
+     ```typescript
+     export const authClient = createAuthClient({
+       baseURL: typeof window !== "undefined"
+         ? window.location.origin
+         : process.env.BETTER_AUTH_URL || "http://localhost:3000",
+     })
+     ```
+
+3. **Discovery URL issues with genericOAuth plugin**
+   - Better Auth may have trouble fetching the OIDC discovery endpoint
+   - **Solution**: Manually specify OAuth endpoints instead of using `discoveryUrl`:
+     ```typescript
+     genericOAuth({
+       config: [{
+         providerId: "zitadel",
+         authorizationUrl: `${ZITADEL_ISSUER_URL}/oauth/v2/authorize`,
+         tokenUrl: `${ZITADEL_ISSUER_URL}/oauth/v2/token`,
+         userInfoUrl: `${ZITADEL_ISSUER_URL}/oidc/v1/userinfo`,
+         // ... other config
+       }]
+     })
+     ```
+
+**After making changes**: Always restart the dev server and clear build cache:
+```bash
+npm run build:clean
+npm run dev
+```
 
 ## Architecture Overview
 
@@ -279,4 +333,5 @@ Look for: `server is listening on [::]:8080`
 
 - [Zitadel Documentation](https://zitadel.com/docs)
 - [Better Auth Documentation](https://www.better-auth.com/docs)
+- Better Auth MCP docs server available
 - [TanStack Start Authentication Guide](https://tanstack.com/start/latest/docs/framework/react/guide/authentication)
