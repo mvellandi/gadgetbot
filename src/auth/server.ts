@@ -62,6 +62,7 @@ export const auth = betterAuth({
 	},
 })
 
+// Re-export shared types from types module for consistency
+// Server code can import from here or from @/auth/types
+export type { User, Session } from "./types"
 export type Auth = typeof auth
-export type Session = typeof auth.$Infer.Session.session
-export type User = typeof auth.$Infer.Session.user

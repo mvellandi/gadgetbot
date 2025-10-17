@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { useMutation } from "@tanstack/react-query"
 import { client } from "@/web/orpc/client"
 import { useForm } from "@tanstack/react-form"
-import { Products } from "@/domains/products"
+import { BOT_SPECS } from "@/domains/products/gadgetbot-specs"
 import { Button } from "@/web/components/ui/button"
 import {
 	Card,
@@ -38,7 +38,7 @@ function NewGadgetBotPage() {
 	const [selectedType, setSelectedType] = useState<BotType>(undefined)
 
 	// Get bot specs for displaying type information
-	const specs = Products.GadgetBot.Specs
+	const specs = BOT_SPECS
 
 	const form = useForm({
 		defaultValues: {

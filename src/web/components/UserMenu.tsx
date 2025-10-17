@@ -8,7 +8,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/web/components/ui/dropdown-menu"
-import type { User } from "@/auth/server"
+import type { User } from "@/auth/types"
 
 interface UserMenuProps {
 	user: User

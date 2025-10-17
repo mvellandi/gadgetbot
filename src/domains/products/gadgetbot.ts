@@ -1,6 +1,7 @@
 import { Schema as S, Effect } from "effect"
 import * as GadgetBotService from "@/db/services/gadgetbot"
 import type { GadgetBotRow } from "@/db/schema"
+import { BOT_SPECS } from "./gadgetbot-specs"
 
 /**
  * GadgetBot Resource
@@ -25,57 +26,6 @@ const GadgetBotStatusSchema = S.Literal(
 	"maintenance",
 	"retired",
 )
-
-// Bot Specifications - Each type has fixed specs (like product models/SKUs)
-// These define the immutable characteristics of each bot type
-const BOT_SPECS = {
-	cleaning: {
-		type: "cleaning" as const,
-		description:
-			"Advanced cleaning robot with multi-surface detection and adaptive cleaning modes. Perfect for maintaining spotless homes with minimal effort.",
-		batteryLife: 8,
-		maxLoadCapacity: 15,
-		features: [
-			"Multi-surface cleaning",
-			"Auto-recharge capability",
-			"Spot cleaning mode",
-			"Edge detection sensors",
-			"HEPA filtration system",
-		],
-		imageUrl: null,
-	},
-	gardening: {
-		type: "gardening" as const,
-		description:
-			"Autonomous gardening assistant for lawn maintenance and basic landscaping tasks. Weather-resistant design for year-round outdoor use.",
-		batteryLife: 12,
-		maxLoadCapacity: 25,
-		features: [
-			"Precision mowing patterns",
-			"Weed detection and removal",
-			"Weather-resistant housing",
-			"Terrain mapping",
-			"Solar charging support",
-		],
-		imageUrl: null,
-	},
-	security: {
-		type: "security" as const,
-		description:
-			"Intelligent security patrol unit with advanced threat detection capabilities. Provides 24/7 monitoring and immediate alert notifications.",
-		batteryLife: 24,
-		maxLoadCapacity: 10,
-		features: [
-			"24/7 autonomous patrol mode",
-			"Motion detection sensors",
-			"Facial recognition AI",
-			"Real-time alert system",
-			"Night vision cameras",
-			"Emergency response protocol",
-		],
-		imageUrl: null,
-	},
-} as const
 
 // Main GadgetBot schema
 const GadgetBotItemSchema = S.Struct({

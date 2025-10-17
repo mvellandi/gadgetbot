@@ -11,7 +11,7 @@
 
 import { GadgetBot as GadgetBotResource } from "./products/gadgetbot.js"
 import { UnauthorizedError } from "@/lib/errors"
-import type { User } from "@/auth/server"
+import type { User } from "@/auth/types"
 
 /**
  * Authorization helper: Check if user is authenticated
