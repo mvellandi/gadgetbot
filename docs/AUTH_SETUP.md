@@ -28,8 +28,10 @@ Look for the message: `server is listening on [::]:8080`
 
 1. Open your browser to: **http://localhost:8080/ui/console**
 2. Sign in with the default admin credentials:
-   - **Username**: `admin`
+   - **Email**: `admin@localhost`
    - **Password**: `Admin123!`
+
+   > **Note**: Zitadel login requires the email address, not the username.
 
 ## Step 3: Create an OAuth Application
 
