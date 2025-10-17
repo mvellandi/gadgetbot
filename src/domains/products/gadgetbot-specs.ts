@@ -19,7 +19,7 @@ export const BOT_SPECS = {
 			"Edge detection sensors",
 			"HEPA filtration system",
 		],
-		imageUrl: null,
+		imageUrl: "/bots/cleanbot.jpeg",
 	},
 	gardening: {
 		type: "gardening" as const,
@@ -34,7 +34,7 @@ export const BOT_SPECS = {
 			"Terrain mapping",
 			"Solar charging support",
 		],
-		imageUrl: null,
+		imageUrl: "/bots/gardenbot.jpeg",
 	},
 	security: {
 		type: "security" as const,
@@ -50,7 +50,7 @@ export const BOT_SPECS = {
 			"Night vision cameras",
 			"Emergency response protocol",
 		],
-		imageUrl: null,
+		imageUrl: "/bots/securebot.jpeg",
 	},
 } as const
 

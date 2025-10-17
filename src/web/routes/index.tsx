@@ -1,5 +1,6 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { Bot, Sparkles, Shield, Clock } from 'lucide-react'
+import { createFileRoute, Link } from '@tanstack/react-router'
+import { Bot, LogIn } from 'lucide-react'
+import { BOT_SPECS } from '@/domains/products/gadgetbot-specs'
 
 export const Route = createFileRoute('/')({
 	component: HomePage,
@@ -8,6 +9,19 @@ export const Route = createFileRoute('/')({
 function HomePage() {
 	return (
 		<div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
+			{/* Admin Auth Section */}
+			<div className="fixed top-4 right-4 z-50">
+				<Link
+					to="/login"
+					search={{ redirect: "/admin" }}
+					className="flex items-center gap-2 px-4 py-2 bg-slate-800/80 backdrop-blur-sm border border-slate-700 hover:border-cyan-500/50 rounded-lg text-gray-300 hover:text-cyan-400 transition-all duration-300 shadow-lg"
+				>
+					<LogIn className="w-4 h-4" />
+					<span className="text-sm font-medium">Admin Login</span>
+				</Link>
+			</div>
+
+			{/* Hero Section */}
 			<section className="relative py-20 px-6 text-center overflow-hidden">
 				<div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 via-blue-500/10 to-purple-500/10"></div>
 				<div className="relative max-w-5xl mx-auto">
@@ -23,76 +37,96 @@ function HomePage() {
 					<p className="text-2xl md:text-3xl text-gray-300 mb-4 font-light">
 						Your trusted companion bot rental service
 					</p>
-					<p className="text-lg text-gray-400 max-w-3xl mx-auto mb-8">
-						From cleaning to security, rent the perfect GadgetBot for any task.
-						Advanced robotics with Effect-powered type safety and reliability.
+					<p className="text-lg text-gray-400 max-w-3xl mx-auto text-balance">
+						Advanced TanStack robotics with Effect-powered type safety, ShadCN components, and Zitadel security.
 					</p>
 				</div>
 			</section>
 
+			{/* Gadgetbot Cards Section */}
 			<section className="py-16 px-6 max-w-7xl mx-auto">
-				<h2 className="text-3xl font-bold text-white mb-8 text-center">
-					Why Choose GadgetBot?
-				</h2>
-				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-					<FeatureCard
-						icon={<Bot className="w-12 h-12 text-cyan-400" />}
-						title="Specialized Bots"
-						description="Choose from cleaning, gardening, security, and more specialized GadgetBots"
+				<div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+					<GadgetBotCard
+						type="Cleaning Bot"
+						description={BOT_SPECS.cleaning.description}
+						features={BOT_SPECS.cleaning.features}
+						imageUrl={BOT_SPECS.cleaning.imageUrl}
 					/>
-					<FeatureCard
-						icon={<Sparkles className="w-12 h-12 text-cyan-400" />}
-						title="Advanced Capabilities"
-						description="Each bot comes with unique capabilities and metadata tracking"
+					<GadgetBotCard
+						type="Gardening Bot"
+						description={BOT_SPECS.gardening.description}
+						features={BOT_SPECS.gardening.features}
+						imageUrl={BOT_SPECS.gardening.imageUrl}
 					/>
-					<FeatureCard
-						icon={<Shield className="w-12 h-12 text-cyan-400" />}
-						title="Type-Safe API"
-						description="Built with Effect Schema and oRPC for runtime validation and type safety"
+					<GadgetBotCard
+						type="Security Bot"
+						description={BOT_SPECS.security.description}
+						features={BOT_SPECS.security.features}
+						imageUrl={BOT_SPECS.security.imageUrl}
 					/>
-					<FeatureCard
-						icon={<Clock className="w-12 h-12 text-cyan-400" />}
-						title="Real-Time Status"
-						description="Track your GadgetBot's status in real-time with SSR support"
-					/>
-				</div>
-			</section>
-
-			<section className="py-16 px-6 max-w-5xl mx-auto text-center">
-				<div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-8">
-					<h2 className="text-2xl font-bold text-white mb-4">
-						Ready to Rent a GadgetBot?
-					</h2>
-					<p className="text-gray-400 mb-6">
-						Browse our catalog of specialized companion bots and find the perfect
-						match for your needs.
-					</p>
-					<button
-						type="button"
-						className="px-8 py-3 bg-cyan-500 hover:bg-cyan-600 text-white font-semibold rounded-lg transition-colors shadow-lg shadow-cyan-500/50"
-					>
-						Browse GadgetBots
-					</button>
 				</div>
 			</section>
 		</div>
 	)
 }
 
-function FeatureCard({
-	icon,
-	title,
+function GadgetBotCard({
+	type,
 	description,
+	features,
+	imageUrl,
 }: {
-	icon: React.ReactNode
-	title: string
+	type: string
 	description: string
+	features: readonly string[]
+	imageUrl: string | null
 }) {
 	return (
-		<div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 hover:border-cyan-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/10">
-			<div className="mb-4">{icon}</div>
-			<h3 className="text-xl font-semibold text-white mb-3">{title}</h3>
-			<p className="text-gray-400 leading-relaxed">{description}</p>
+		<div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl overflow-hidden hover:border-cyan-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/10 flex flex-col">
+			{/* GadgetBot Image */}
+			<div className="aspect-square w-full overflow-hidden border-b border-slate-700 bg-slate-900">
+				{imageUrl ? (
+					<img
+						src={imageUrl}
+						alt={type}
+						className="w-full h-full object-cover"
+					/>
+				) : (
+					<div className="w-full h-full bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center">
+						<Bot className="w-24 h-24 text-slate-600" />
+					</div>
+				)}
+			</div>
+
+			{/* Content */}
+			<div className="p-6 flex flex-col flex-1">
+				<h3 className="text-2xl font-bold text-white mb-3">{type}</h3>
+				<p className="text-gray-400 leading-relaxed mb-6">{description}</p>
+
+				{/* Features List */}
+				<div className="mb-6 flex-1">
+					<h4 className="text-sm font-semibold text-cyan-400 mb-3 uppercase tracking-wide">
+						Key Features
+					</h4>
+					<ul className="space-y-2">
+						{features.map((feature, index) => (
+							<li key={index} className="text-sm text-gray-300 flex items-start gap-2">
+								<span className="text-cyan-400 mt-1">•</span>
+								<span>{feature}</span>
+							</li>
+						))}
+					</ul>
+				</div>
+
+				{/* Coming Soon Button */}
+				<button
+					type="button"
+					disabled
+					className="w-full px-6 py-3 bg-slate-700 text-gray-400 font-semibold rounded-lg cursor-not-allowed"
+				>
+					Coming Soon
+				</button>
+			</div>
 		</div>
 	)
 }
