@@ -1,0 +1,110 @@
+# Zitadel Production Configuration
+# Based on: https://zitadel.com/docs/self-hosting/manage/production
+
+Log:
+  Level: 'info'  # Use 'debug' only for troubleshooting
+  Formatter:
+    Format: 'json'  # Structured logs for production
+
+# External domain configuration
+ExternalSecure: true
+ExternalPort: 443
+# ExternalDomain is set via environment variable
+
+# TLS configuration (handled by nginx reverse proxy)
+TLS:
+  Enabled: false  # Nginx handles TLS termination
+  Mode: 'external'
+
+# Database configuration
+Database:
+  Postgres:
+    # Connection settings via environment variables
+    MaxOpenConns: 25
+    MaxIdleConns: 10
+    MaxConnLifetime: 30m
+    MaxConnIdleTime: 5m
+    User:
+      SSL:
+        Mode: 'disable'  # Enable in production with proper certs
+    Admin:
+      SSL:
+        Mode: 'disable'  # Enable in production with proper certs
+
+# Projections optimize read performance
+Projections:
+  RequeueEvery: 60s
+  RetryFailedAfter: 1m
+  MaxFailureCount: 5
+  BulkLimit: 200
+  Customizations: []
+
+# Default instance settings
+DefaultInstance:
+  # Email/SMTP configuration
+  SMTPConfiguration:
+    # Configure via environment or override here
+    # From: 'noreply@yourdomain.com'
+    # FromName: 'GadgetBot'
+    # ReplyTo: 'support@yourdomain.com'
+
+  # Token lifetimes
+  OIDCSettings:
+    AccessTokenLifetime: 12h
+    IdTokenLifetime: 12h
+    RefreshTokenIdleExpiration: 720h  # 30 days
+    RefreshTokenExpiration: 2160h     # 90 days
+
+  # Password policy
+  PasswordComplexityPolicy:
+    MinLength: 8
+    HasLowercase: true
+    HasUppercase: true
+    HasNumber: true
+    HasSymbol: false
+
+  # Lockout policy
+  LockoutPolicy:
+    MaxPasswordAttempts: 5
+    ShowLockOutFailures: true
+
+  # Privacy policy
+  PrivacyPolicy:
+    TOSLink: 'https://gadgetbot.yourdomain.com/terms'
+    PrivacyLink: 'https://gadgetbot.yourdomain.com/privacy'
+    HelpLink: 'https://gadgetbot.yourdomain.com/help'
+
+# System limits
+SystemDefaults:
+  SecretGenerators:
+    PasswordSaltCost: 14  # bcrypt cost (higher = more secure but slower)
+    ClientSecretGenerator:
+      Length: 64
+      IncludeLowerLetters: true
+      IncludeUpperLetters: true
+      IncludeDigits: true
+      IncludeSymbols: true
+
+# Monitoring
+Telemetry:
+  Enabled: true
+  Type: 'otel'  # OpenTelemetry
+  # Metrics exposed at /debug/metrics
+  # Fraction: 1.0  # Sample 100% of traces
+
+# Asset delivery optimization
+AssetStorage:
+  Type: 'db'  # Store assets in database (or use 'filesystem' with CDN)
+  Cache:
+    MaxAge: 5m
+    SharedMaxAge: 168h  # 7 days for CDN caching
+
+# Machine settings (for resource optimization)
+Machine:
+  Identification:
+    # Hostname automatically detected
+    # PrivateLabels: []
+
+# HTTP/2 server settings
+HTTP:
+  Port: 8080  # Internal port (nginx forwards to this)

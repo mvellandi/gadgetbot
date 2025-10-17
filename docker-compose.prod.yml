@@ -1,0 +1,169 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: gadgetbot-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: gadgetbot
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      # Performance tuning for small VPS
+      POSTGRES_SHARED_BUFFERS: 256MB
+      POSTGRES_EFFECTIVE_CACHE_SIZE: 1GB
+      POSTGRES_MAX_CONNECTIONS: 100
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - gadgetbot-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 768M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    # Run postgres as non-root
+    user: postgres
+
+  # Zitadel (Self-hosted OAuth/OIDC)
+  zitadel:
+    image: ghcr.io/zitadel/zitadel:latest
+    container_name: gadgetbot-zitadel
+    restart: unless-stopped
+    command: 'start-from-init --masterkeyFromEnv --config /zitadel-config.yaml'
+    environment:
+      # Master key for encryption (required)
+      ZITADEL_MASTERKEY: ${ZITADEL_MASTERKEY}
+
+      # External domain configuration
+      ZITADEL_EXTERNALDOMAIN: ${ZITADEL_DOMAIN}
+
+      # Database connection
+      ZITADEL_DATABASE_POSTGRES_HOST: postgres
+      ZITADEL_DATABASE_POSTGRES_PORT: 5432
+      ZITADEL_DATABASE_POSTGRES_DATABASE: zitadel
+      ZITADEL_DATABASE_POSTGRES_USER_USERNAME: ${DB_USER:-postgres}
+      ZITADEL_DATABASE_POSTGRES_USER_PASSWORD: ${DB_PASSWORD}
+      ZITADEL_DATABASE_POSTGRES_ADMIN_USERNAME: ${DB_USER:-postgres}
+      ZITADEL_DATABASE_POSTGRES_ADMIN_PASSWORD: ${DB_PASSWORD}
+
+      # First instance setup (only used on initial deployment)
+      ZITADEL_FIRSTINSTANCE_ORG_NAME: 'GadgetBot'
+      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_USERNAME: ${ZITADEL_ADMIN_USERNAME}
+      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORD: ${ZITADEL_ADMIN_PASSWORD}
+      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_FIRSTNAME: 'Admin'
+      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_LASTNAME: 'User'
+      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_EMAIL: ${ZITADEL_ADMIN_EMAIL}
+    volumes:
+      - ./zitadel-config.yaml:/zitadel-config.yaml:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - gadgetbot-network
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "--quiet", "http://localhost:8080/debug/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    # Resource limits (adjust based on your VPS tier)
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  # GadgetBot Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: gadgetbot-app
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://${DB_USER:-postgres}:${DB_PASSWORD}@postgres:5432/gadgetbot
+      DATABASE_POOL_MIN: 2
+      DATABASE_POOL_MAX: 10
+      BETTER_AUTH_URL: ${APP_URL}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
+      ZITADEL_ISSUER: https://${ZITADEL_DOMAIN}
+      ZITADEL_CLIENT_ID: ${ZITADEL_CLIENT_ID}
+      ZITADEL_CLIENT_SECRET: ${ZITADEL_CLIENT_SECRET}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      zitadel:
+        condition: service_healthy
+    networks:
+      - gadgetbot-network
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "--quiet", "http://localhost:3000"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: gadgetbot-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./certbot/conf:/etc/letsencrypt:ro
+      - ./certbot/www:/var/www/certbot:ro
+    depends_on:
+      - app
+      - zitadel
+    networks:
+      - gadgetbot-network
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "--quiet", "http://localhost/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Certbot for SSL certificates
+  certbot:
+    image: certbot/certbot
+    container_name: gadgetbot-certbot
+    volumes:
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+
+networks:
+  gadgetbot-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local

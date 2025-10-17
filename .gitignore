@@ -4,9 +4,16 @@ dist
 dist-ssr
 *.local
 .env
+.env.production
+.env.*.local
 .nitro
 .tanstack
 .output
 .vinxi
 .playwright-mcp
 .zitadel
+
+# Production deployment files
+certbot/
+postgres_data/
+backups/
