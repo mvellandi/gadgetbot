@@ -5,29 +5,38 @@
  * Used by web client, CLI, and external API consumers.
  *
  * Only interacts with the Products domain API - maintains clean boundaries.
+ * Passes authenticated user from context to domain for authorization.
  */
 
 import { os } from "@orpc/server"
 import { Schema as S } from "effect"
 import { Products } from "@/domains/products"
+import type { Context } from "@/orpc/context"
+
+/**
+ * Create oRPC server instance with Context type
+ */
+const server = os.$context<Context>()
 
 /**
  * GadgetBot procedures
+ * All procedures receive context with user session for authorization
  */
 export const gadgetbots = {
 	/**
 	 * Get a new GadgetBot template for forms
 	 * Returns default values for creating a new gadgetbot
+	 * Requires admin authorization
 	 */
-	new: os.handler(() => {
-		return Products.GadgetBot.new()
+	new: server.handler(({ context }) => {
+		return Products.GadgetBot.new(context.user)
 	}),
 
 	/**
 	 * List all GadgetBots
 	 * Public access for browsing the rental catalog
 	 */
-	list: os
+	list: server
 		.input(S.standardSchemaV1(S.Struct({})))
 		.handler(async () => {
 			return await Products.GadgetBot.findAll()
@@ -37,7 +46,7 @@ export const gadgetbots = {
 	 * Get a single GadgetBot by ID
 	 * Public access for viewing details
 	 */
-	getById: os
+	getById: server
 		.input(
 			S.standardSchemaV1(
 				S.Struct({
@@ -54,20 +63,20 @@ export const gadgetbots = {
 
 	/**
 	 * Create a new GadgetBot
-	 * Requires admin authorization (TODO: enforce via Zitadel)
+	 * Requires admin authorization
 	 */
-	create: os
+	create: server
 		.input(S.standardSchemaV1(Products.GadgetBot.Schemas.CreateInput))
-		.handler(async ({ input }) => {
-			return await Products.GadgetBot.create(input)
+		.handler(async ({ input, context }) => {
+			return await Products.GadgetBot.create(context.user, input)
 		}),
 
 	/**
 	 * Update an existing GadgetBot
 	 * Only allows updating batteryLife to reflect actual unit condition
-	 * Requires admin authorization (TODO: enforce via Zitadel)
+	 * Requires admin authorization
 	 */
-	update: os
+	update: server
 		.input(
 			S.standardSchemaV1(
 				S.Struct({
@@ -79,16 +88,16 @@ export const gadgetbots = {
 				}),
 			),
 		)
-		.handler(async ({ input }) => {
-			return await Products.GadgetBot.update(input.id, input.data)
+		.handler(async ({ input, context }) => {
+			return await Products.GadgetBot.update(context.user, input.id, input.data)
 		}),
 
 	/**
 	 * Delete a GadgetBot by ID
-	 * Requires admin authorization (TODO: enforce via Zitadel)
+	 * Requires admin authorization
 	 * Returns the deleted gadgetbot for confirmation
 	 */
-	deleteById: os
+	deleteById: server
 		.input(
 			S.standardSchemaV1(
 				S.Struct({
@@ -99,7 +108,7 @@ export const gadgetbots = {
 				}),
 			),
 		)
-		.handler(async ({ input }) => {
-			return await Products.GadgetBot.deleteById(input.id)
+		.handler(async ({ input, context }) => {
+			return await Products.GadgetBot.deleteById(context.user, input.id)
 		}),
 }

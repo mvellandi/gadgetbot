@@ -67,35 +67,35 @@
   - Troubleshooting guide
   - Architecture diagram
 
-## 🚧 Phase 2: Integration (PENDING)
+## ✅ Phase 2: Integration (COMPLETE)
 
 ### Route Protection
-- [ ] Create admin layout with `beforeLoad` guard
-- [ ] Add session checks to protected routes
-- [ ] Implement role-based access control
-- [ ] Handle 401/403 error pages
+- [x] Create admin layout with `beforeLoad` guard
+- [x] Add session checks to protected routes
+- [x] Implement role-based access control (basic - admin only for now)
+- [x] Handle 401/403 error pages
 
 ### User Interface
-- [ ] Create UserMenu component
+- [x] Create UserMenu component
   - Display user name/avatar
   - Sign out button
-  - Profile link
-- [ ] Add user menu to root layout
-- [ ] Update admin dashboard with auth context
-- [ ] Add loading states during auth checks
+  - Profile link (placeholder)
+- [x] Add user menu to admin layout
+- [x] Update admin dashboard with auth context
+- [x] Add loading states during auth checks
 
 ### Domain Authorization
-- [ ] Update `src/domains/products.ts` with real auth checks
-- [ ] Pass session from oRPC context to domain operations
-- [ ] Implement role-based permissions
-  - Admin: Full CRUD access
+- [x] Update `src/domains/products.ts` with real auth checks
+- [x] Pass session from oRPC context to domain operations
+- [x] Implement role-based permissions
+  - Admin: Full CRUD access (any authenticated user for now)
   - Customer: Read-only access (future)
 
 ### oRPC Context
-- [ ] Create `src/orpc/router/context.ts`
-- [ ] Extract session from request
-- [ ] Pass context to all procedures
-- [ ] Update product procedures to use context
+- [x] Create `src/orpc/context.ts`
+- [x] Extract session from request
+- [x] Pass context to all procedures
+- [x] Update product procedures to use context
 
 ## 🎯 Phase 3: Testing & Polish (PENDING)
 
@@ -125,16 +125,20 @@
 - ✅ Zitadel is running and accessible at http://localhost:8080
 - ✅ Database schema is created and migrated
 - ✅ Better Auth is configured with Zitadel OAuth
-- ✅ Login page is ready
-- ✅ API handler is set up
+- ✅ Login page is ready with redirect support
+- ✅ API handler is set up with session context
+- ✅ Admin routes are protected with authentication guards
+- ✅ UserMenu component with avatar and dropdown
+- ✅ oRPC context extracts session from requests
+- ✅ Domain operations enforce authorization
+- ✅ Error pages (401, 403) for auth failures
 
-### What's Needed
-- ⏳ Configure OAuth application in Zitadel console
-- ⏳ Add Client ID and Secret to .env
-- ⏳ Generate secure BETTER_AUTH_SECRET
-- ⏳ Test the complete auth flow
-- ⏳ Add route protection to admin pages
-- ⏳ Integrate with domain operations
+### What's Needed (Phase 3)
+- ⏳ Manual testing of complete OAuth flow
+- ⏳ Test session persistence across page reloads
+- ⏳ Configure Zitadel roles for advanced RBAC
+- ⏳ Production security hardening (HTTPS, rate limiting)
+- ⏳ Update CLAUDE.md with auth patterns
 
 ## Quick Start (Next Steps)
 
@@ -173,12 +177,25 @@
 - `src/auth/server.ts` - Better Auth server setup
 - `src/web/auth/client.ts` - Better Auth client for React
 
-### Routes & API
+### Routes & API (Phase 1)
 - `src/web/routes/api.auth.$.ts` - Auth API handler
-- `src/web/routes/login.tsx` - Login page
+- `src/web/routes/login.tsx` - Login page with redirect support
+
+### Routes & Components (Phase 2)
+- `src/web/routes/admin.tsx` - Protected admin layout with auth guard
+- `src/web/routes/401.tsx` - Unauthorized error page
+- `src/web/routes/403.tsx` - Forbidden error page
+- `src/web/components/UserMenu.tsx` - User dropdown with avatar and sign out
+
+### oRPC Integration (Phase 2)
+- `src/orpc/context.ts` - Context builder with session extraction
+- `src/orpc/router/products.ts` - Updated with context-aware procedures
+
+### Domain Authorization (Phase 2)
+- `src/domains/products.ts` - Updated with auth checks (requireAuth, requireAdmin)
 
 ### Utilities
-- `src/lib/errors.ts` - Standard error classes
+- `src/lib/errors.ts` - Standard error classes (UnauthorizedError, ForbiddenError)
 
 ### Documentation
 - `docs/AUTH_SETUP.md` - Complete setup guide
@@ -190,11 +207,11 @@
 - `package.json` - Added Zitadel scripts
 - `src/db/schema/index.ts` - Export auth schema
 
-## Estimated Time Remaining
+## Time Tracking
 
-- **Phase 2 (Integration)**: 2-3 hours
-- **Phase 3 (Testing & Polish)**: 1-2 hours
-- **Total**: 3-5 hours
+- **Phase 1 (Core Setup)**: ✅ Complete
+- **Phase 2 (Integration)**: ✅ Complete
+- **Phase 3 (Testing & Polish)**: ⏳ Remaining (1-2 hours)
 
 ## Notes
 

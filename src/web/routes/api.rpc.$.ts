@@ -3,13 +3,17 @@ import '@/polyfill'
 import { RPCHandler } from '@orpc/server/fetch'
 import { createFileRoute } from '@tanstack/react-router'
 import router from '@/orpc/router'
+import { createContext } from '@/orpc/context'
 
 const handler = new RPCHandler(router)
 
 async function handle({ request }: { request: Request }) {
+  // Extract session context from request for auth
+  const context = await createContext(request)
+
   const { response } = await handler.handle(request, {
     prefix: '/api/rpc',
-    context: {},
+    context,
   })
 
   return response ?? new Response('Not Found', { status: 404 })

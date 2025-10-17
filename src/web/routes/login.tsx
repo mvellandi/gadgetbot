@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router"
+import { createFileRoute, useSearch } from "@tanstack/react-router"
 import { authClient } from "@/web/auth/client"
 import { Button } from "@/web/components/ui/button"
 import {
@@ -11,11 +11,16 @@ import {
 import { useState } from "react"
 
 export const Route = createFileRoute("/login")({
+	validateSearch: (search: Record<string, unknown>) => {
+		return {
+			redirect: (search.redirect as string) || "/admin",
+		}
+	},
 	component: LoginPage,
 })
 
 function LoginPage() {
-	const navigate = useNavigate()
+	const search = useSearch({ from: "/login" })
 	const [isLoading, setIsLoading] = useState(false)
 	const [error, setError] = useState<string | null>(null)
 
@@ -24,9 +29,10 @@ function LoginPage() {
 			setIsLoading(true)
 			setError(null)
 
+			// Use redirect parameter from URL, or default to /admin
 			await authClient.signIn.social({
 				provider: "zitadel",
-				callbackURL: "/admin/products",
+				callbackURL: search.redirect,
 			})
 
 			// Redirect will happen automatically via OAuth flow
