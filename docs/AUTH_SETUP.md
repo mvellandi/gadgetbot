@@ -28,10 +28,12 @@ Look for the message: `server is listening on [::]:8080`
 
 1. Open your browser to: **http://localhost:8080/ui/console**
 2. Sign in with the default admin credentials:
-   - **Email**: `admin@localhost`
+   - **Email**: `admin@gadgetbot.localhost`
    - **Password**: `Admin123!`
 
    > **Note**: Zitadel login requires the email address, not the username.
+
+   > **Troubleshooting**: If you get "user could not be found", the initial admin user wasn't created properly. See the [Reset Zitadel](#reset-zitadel-fresh-start) section below to fix this.
 
 ## Step 3: Create an OAuth Application
 
@@ -50,7 +52,7 @@ Look for the message: `server is listening on [::]:8080`
 ### 3.3 Configure Authentication Settings
 
 1. **Authentication Method**: Select **PKCE** (recommended for security)
-2. **Redirect URIs**: Add the following URLs:
+2. **Redirect URIs**: Add the following URLs with development mode enabled:
    ```
    http://localhost:3000/api/auth/callback/zitadel
    ```
@@ -60,31 +62,35 @@ Look for the message: `server is listening on [::]:8080`
    ```
 4. **Grant Types**: Ensure these are selected:
    - ✅ Authorization Code
-   - ✅ Refresh Token
 5. Click **Continue**
 
-### 3.4 Copy Credentials
+### 3.4 Copy Client ID
 
 After creating the application, you'll see:
 - **Client ID**: Copy this value
-- **Client Secret**: Click "Regenerate" if needed, then copy
 
-⚠️ **Important**: Save these credentials securely. You'll need them in the next step.
+> **Note**: When using PKCE authentication, no Client Secret is required or provided. This is more secure for public clients as there's no secret to compromise.
+
+### 3.5 Confirmation
+
+Select "Refresh Token" to add it to "Grant Types", then click **Save**.
 
 ## Step 4: Configure Environment Variables
 
-Update your `.env` file with the Zitadel credentials:
+Update your `.env` file with the Zitadel Client ID:
 
 ```bash
 # Zitadel Configuration
 ZITADEL_ISSUER_URL=http://localhost:8080
 ZITADEL_CLIENT_ID=your-client-id-here
-ZITADEL_CLIENT_SECRET=your-client-secret-here
+# ZITADEL_CLIENT_SECRET is not needed when using PKCE
 
 # Better Auth (already configured)
 BETTER_AUTH_SECRET=changeme-generate-a-random-32-character-secret
 BETTER_AUTH_URL=http://localhost:3000
 ```
+
+> **Why no Client Secret?** PKCE (Proof Key for Code Exchange) is a more secure OAuth flow that doesn't require a client secret. This prevents security issues if the client code is compromised.
 
 ### Generate a Secure Better Auth Secret
 
@@ -101,42 +107,43 @@ Or use Node.js:
 node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
 ```
 
-## Step 5: Configure Roles in Zitadel (Optional but Recommended)
+## Step 5: Configure Roles in Zitadel (Optional - Phase 2)
 
-### 5.1 Create Admin Role
+> **Note**: This section can be skipped for initial testing. The basic OAuth flow will work without custom roles. You can return to this section later when implementing role-based authorization.
 
-1. In Zitadel console, go to **Organization** → **Roles**
-2. Click **New**
-3. **Key**: `admin`
-4. **Display Name**: `Administrator`
-5. **Group**: `admin_access`
-6. Click **Save**
+### Why Skip for Now?
+- Your user already has org owner permissions (sufficient for testing)
+- Basic authentication works without custom application roles
+- Role-based authorization will be implemented in Phase 2
 
-### 5.2 Create Customer Role
+### When to Come Back
+- After confirming the basic login flow works
+- When implementing admin vs. customer permissions
+- When adding role-based access control to domain operations
 
-1. Click **New** again
-2. **Key**: `customer`
-3. **Display Name**: `Customer`
-4. **Group**: `user_access`
-5. Click **Save**
+<details>
+<summary>Click to expand: Role Configuration Steps (for Phase 2)</summary>
 
-### 5.3 Assign Admin Role to Your User
+### 5.1 Create Application Roles
+
+> **Note**: The Zitadel UI has changed. These instructions may need adjustment based on your version.
+
+1. In Zitadel console, go to your **GadgetBot Web** application
+2. Navigate to **Roles** section
+3. Create custom roles like `admin` and `customer`
+4. Configure role claims to be included in tokens
+
+### 5.2 Assign Roles to Users
 
 1. Go to **Users** in the left sidebar
-2. Click on your admin user
-3. Click **Authorizations** tab
-4. Click **New**
-5. Select your application: **GadgetBot Web**
-6. Select the **admin** role
-7. Click **Save**
+2. Click on your user
+3. Assign application-specific roles as needed
 
-### 5.4 Configure Role Claims in ID Token
+### 5.3 Configure Token Claims
 
-1. Go back to **Applications** → **GadgetBot Web**
-2. Click on **Token Settings**
-3. Enable **Add Roles to ID Token**
-4. Enable **Add Roles to Userinfo**
-5. Click **Save**
+Ensure roles are included in the ID token and userinfo endpoint for Better Auth to access them.
+
+</details>
 
 ## Step 6: Start the Application
 
@@ -160,6 +167,34 @@ The application will be available at: **http://localhost:3000**
 
 ## Troubleshooting
 
+### Reset Zitadel (Fresh Start)
+
+If you're having login issues or need to start fresh:
+
+```bash
+# Stop Zitadel and remove all data
+npm run zitadel:reset
+
+# Wait 30 seconds for initialization
+sleep 30
+
+# Check logs to confirm it's ready
+npm run zitadel:logs
+```
+
+After reset, use these credentials:
+- **Email**: `admin@gadgetbot.localhost`
+- **Password**: `Admin123!`
+
+### Issue: "User could not be found"
+
+**Solution**: The admin user wasn't created properly during initialization. Use the [Reset Zitadel](#reset-zitadel-fresh-start) command above.
+
+Alternatively, you can register a new user:
+1. On the login page, click "Register"
+2. Fill in your details
+3. Complete registration (no email verification needed in dev mode)
+
 ### Issue: "redirect_uri_mismatch" Error
 
 **Solution**: Ensure the redirect URI in Zitadel exactly matches:
@@ -170,18 +205,6 @@ http://localhost:3000/api/auth/callback/zitadel
 ### Issue: "Invalid client" Error
 
 **Solution**: Double-check your Client ID and Client Secret in `.env`
-
-### Issue: Zitadel Won't Start
-
-**Solution**:
-```bash
-# Stop and remove volumes
-npm run zitadel:down
-docker compose -f docker-compose.zitadel.yml down -v
-
-# Start fresh
-npm run zitadel:up
-```
 
 ### Issue: "Discovery URL not found"
 

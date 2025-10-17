@@ -27,10 +27,8 @@ export const auth = betterAuth({
 	baseURL: env.BETTER_AUTH_URL,
 	plugins: [
 		// Configure Zitadel as a generic OAuth provider
-		// Only include if Zitadel credentials are configured
-		...(env.ZITADEL_CLIENT_ID &&
-		env.ZITADEL_CLIENT_SECRET &&
-		env.ZITADEL_ISSUER_URL
+		// Using PKCE (no client secret required for public clients)
+		...(env.ZITADEL_CLIENT_ID && env.ZITADEL_ISSUER_URL
 			? [
 					genericOAuth({
 						config: [
@@ -38,9 +36,10 @@ export const auth = betterAuth({
 								providerId: "zitadel",
 								discoveryUrl: `${env.ZITADEL_ISSUER_URL}/.well-known/openid-configuration`,
 								clientId: env.ZITADEL_CLIENT_ID,
-								clientSecret: env.ZITADEL_CLIENT_SECRET,
+								// No clientSecret needed - PKCE is used for public clients
+								clientSecret: env.ZITADEL_CLIENT_SECRET || "",
 								scopes: ["openid", "profile", "email", "offline_access"],
-								pkce: true, // Recommended for security
+								pkce: true, // PKCE eliminates need for client secret
 							},
 						],
 					}),
@@ -54,11 +53,8 @@ export const auth = betterAuth({
 		},
 	},
 	advanced: {
-		cookies: {
-			// Security settings for production
-			sameSite: "lax",
-			secure: env.BETTER_AUTH_URL.startsWith("https"),
-		},
+		// Use secure cookies in production (HTTPS)
+		useSecureCookies: env.BETTER_AUTH_URL.startsWith("https"),
 	},
 })
 
