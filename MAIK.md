@@ -29,6 +29,38 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) - you should see the homepage!
 
+## Environment Variables Reference
+
+Create a `.env` file in the project root with these variables:
+
+```bash
+# Database Configuration
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/gadgetbot
+DATABASE_POOL_MIN=2      # Optional: Minimum pool connections (default: 2)
+DATABASE_POOL_MAX=10     # Optional: Maximum pool connections (default: 10)
+
+# Better Auth Configuration
+BETTER_AUTH_SECRET=<generate-with-openssl-rand-base64-32>
+BETTER_AUTH_URL=http://localhost:3000
+
+# Zitadel OAuth Configuration (for authentication features)
+ZITADEL_ISSUER_URL=http://localhost:8080
+ZITADEL_CLIENT_ID=<your-client-id>@gadgetbot
+# Note: ZITADEL_CLIENT_SECRET not needed when using PKCE authentication
+```
+
+**Quick Secret Generation:**
+```bash
+# Generate BETTER_AUTH_SECRET
+openssl rand -base64 32
+```
+
+**What if I skip Zitadel setup?**
+- The app will run fine without auth
+- You can explore domain operations via REPL
+- Public routes will work normally
+- Protected routes (/admin) will redirect to /login
+
 ### Zitadel OAuth Setup (10-15 minutes)
 
 If you want to explore the authentication:
@@ -179,6 +211,13 @@ export const createGadgetbot = os
 ### oRPC Integration
 - `src/orpc/router/products.ts` - Protected API procedures
 - `src/web/orpc/client.ts` - Type-safe client with auth
+
+### Documentation Resources
+- [docs/AUTH_SETUP.md](./docs/AUTH_SETUP.md) - Complete authentication setup guide
+- [docs/AUTH_PATTERNS.md](./docs/AUTH_PATTERNS.md) - Development patterns for auth
+- [docs/AUTH_IMPLEMENTATION_STATUS.md](./docs/AUTH_IMPLEMENTATION_STATUS.md) - Implementation progress and roadmap
+
+**Better Auth MCP Server:** This project has a Better Auth MCP (Model Context Protocol) server configured. You can use it to query Better Auth documentation directly when working with authentication code. See CLAUDE.md for MCP tool usage.
 
 ## Pro Tips
 
