@@ -155,12 +155,11 @@ oRPC procedures automatically receive authenticated user context:
 ```typescript
 // In any oRPC procedure
 export const createGadgetbot = os
-  .use(requireAuth) // Enforces authentication
   .input(Schema.standardSchemaV1(CreateGadgetBotSchema))
   .handler(async ({ input, context }) => {
-    // context.user is populated from session
-    console.log('User creating gadgetbot:', context.user.id)
-    return await Products.GadgetBot.create(input)
+    // Domain handles auth - pass context.user
+    // Domain will throw UnauthorizedError if not authenticated
+    return await Products.GadgetBot.create(context.user, input)
   })
 ```
 
