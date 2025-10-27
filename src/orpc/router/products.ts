@@ -9,9 +9,9 @@
  */
 
 import { os } from "@orpc/server"
-import { Schema as S } from "effect"
 import { Products } from "@/domains/products"
 import type { Context } from "@/orpc/context"
+import { Struct, Schema, S } from "../utils"
 
 /**
  * Create oRPC server instance with Context type
@@ -34,31 +34,27 @@ export const gadgetbots = {
 
 	/**
 	 * List all GadgetBots
-	 * Public access for browsing the rental catalog
+	 * Requires admin authorization (internal inventory management)
 	 */
-	list: server
-		.input(S.standardSchemaV1(S.Struct({})))
-		.handler(async () => {
-			return await Products.GadgetBot.findAll()
-		}),
+	list: server.handler(async ({ context }) => {
+		return await Products.GadgetBot.findAll(context.user)
+	}),
 
 	/**
 	 * Get a single GadgetBot by ID
-	 * Public access for viewing details
+	 * Requires admin authorization (internal inventory management)
 	 */
 	getById: server
 		.input(
-			S.standardSchemaV1(
-				S.Struct({
-					id: S.String.pipe(
-						S.nonEmptyString(),
-						S.annotations({ description: "GadgetBot ID (UUID)" }),
-					),
-				}),
-			),
+			Struct({
+				id: S.String.pipe(
+					S.nonEmptyString(),
+					S.annotations({ description: "GadgetBot ID (UUID)" }),
+				),
+			}),
 		)
-		.handler(async ({ input }) => {
-			return await Products.GadgetBot.findById(input.id)
+		.handler(async ({ input, context }) => {
+			return await Products.GadgetBot.findById(context.user, input.id)
 		}),
 
 	/**
@@ -66,7 +62,7 @@ export const gadgetbots = {
 	 * Requires admin authorization
 	 */
 	create: server
-		.input(S.standardSchemaV1(Products.GadgetBot.Schemas.CreateInput))
+		.input(Schema(Products.GadgetBot.Schemas.CreateInput))
 		.handler(async ({ input, context }) => {
 			return await Products.GadgetBot.create(context.user, input)
 		}),
@@ -78,15 +74,13 @@ export const gadgetbots = {
 	 */
 	update: server
 		.input(
-			S.standardSchemaV1(
-				S.Struct({
+			Struct({
 					id: S.String.pipe(
 						S.nonEmptyString(),
 						S.annotations({ description: "GadgetBot ID (UUID)" }),
 					),
 					data: Products.GadgetBot.Schemas.UpdateInput,
 				}),
-			),
 		)
 		.handler(async ({ input, context }) => {
 			return await Products.GadgetBot.update(context.user, input.id, input.data)
@@ -99,14 +93,12 @@ export const gadgetbots = {
 	 */
 	deleteById: server
 		.input(
-			S.standardSchemaV1(
-				S.Struct({
+			Struct({
 					id: S.String.pipe(
 						S.nonEmptyString(),
 						S.annotations({ description: "GadgetBot ID (UUID)" }),
 					),
 				}),
-			),
 		)
 		.handler(async ({ input, context }) => {
 			return await Products.GadgetBot.deleteById(context.user, input.id)

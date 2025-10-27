@@ -69,15 +69,24 @@ export const Products = {
 
 		/**
 		 * Find all GadgetBots
-		 * Public access for browsing catalog
+		 * Requires admin authorization (internal inventory management)
 		 */
-		findAll: GadgetBotResource.findAll,
+		findAll: async (user: User | null | undefined) => {
+			requireAdmin(user)
+			return GadgetBotResource.findAll()
+		},
 
 		/**
 		 * Find a GadgetBot by ID
-		 * Public access for viewing details
+		 * Requires admin authorization (internal inventory management)
 		 */
-		findById: GadgetBotResource.findById,
+		findById: async (
+			user: User | null | undefined,
+			...args: Parameters<typeof GadgetBotResource.findById>
+		) => {
+			requireAdmin(user)
+			return GadgetBotResource.findById(...args)
+		},
 
 		/**
 		 * Update a GadgetBot

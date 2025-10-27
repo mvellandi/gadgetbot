@@ -58,7 +58,8 @@ npm run dev
 ```bash
 npm run repl
 > const Products = await import('./src/domains/products.js')
-> await Products.GadgetBot.findAll()
+> const mockUser = { id: '1', email: 'admin@test.com' }
+> await Products.GadgetBot.findAll(mockUser)
 ```
 
 **Common First Tasks:**
@@ -339,8 +340,11 @@ npm run repl
 // In REPL - import and use domain API
 > const Products = await import('./src/domains/products.js')
 
+// Mock admin user for testing (all operations require admin)
+> const mockUser = { id: '1', email: 'admin@test.com' }
+
 // Create a gadgetbot
-> await Products.GadgetBot.create({
+> await Products.GadgetBot.create(mockUser, {
     name: "CleanBot 3000",
     type: "cleaning",
     status: "available"
@@ -348,19 +352,19 @@ npm run repl
 // Returns: { id: "uuid", name: "CleanBot 3000", ... }
 
 // List all gadgetbots
-> await Products.GadgetBot.findAll()
+> await Products.GadgetBot.findAll(mockUser)
 // Returns: [{ id: "uuid", ... }, ...]
 
 // Find by ID
-> await Products.GadgetBot.findById("uuid")
+> await Products.GadgetBot.findById(mockUser, "uuid")
 // Returns: { id: "uuid", ... }
 
 // Update
-> await Products.GadgetBot.update("uuid", { name: "SuperCleanBot" })
+> await Products.GadgetBot.update(mockUser, "uuid", { name: "SuperCleanBot" })
 // Returns: { id: "uuid", name: "SuperCleanBot", ... }
 
 // Delete
-> await Products.GadgetBot.deleteById("uuid")
+> await Products.GadgetBot.deleteById(mockUser, "uuid")
 // Returns: { id: "uuid", name: "CleanBot 3000", ... } (deleted item for confirmation)
 ```
 
@@ -705,9 +709,10 @@ src/domains/
 - Example domain API: [`src/domains/products.ts`](src/domains/products.ts)
 
 **Current Domains:**
-- **Products**: GadgetBot rental inventory
+- **Products**: GadgetBot inventory management (internal tool)
   - Resources: GadgetBot (cleaning, gardening, security types)
-  - Authorization: Admin-only creation (enforced via Zitadel policies)
+  - Authorization: Admin-only for all operations (enforced via Zitadel policies)
+  - Note: Rentals (future) will be public and rent by type, not individual units
 
 ## Standard Schema Integration
 
