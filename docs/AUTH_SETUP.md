@@ -39,14 +39,21 @@ Look for the message: `server is listening on [::]:8080`
 
 ### 3.1 Navigate to Applications
 
-1. In the Zitadel console, click on the **default organization** (GadgetBot)
-2. Click on **Applications** in the left sidebar
-3. Click **New** button
+1. In the Zitadel console, select the organization `GadgetBot` from the top-left dropdown
+2. On the home page, click the **Create Application** button
 
-### 3.2 Configure Application
+### 3.2 Configure Project and Application
 
-1. **Name**: `GadgetBot Web`
-2. **Type**: Select **WEB**
+The application form asks you to first select your project
+
+1. **Project Name**: `GadgetBot`
+2. **Framework**: Select **Other (OIDC, SAML, API)**
+3. Click **Create** button
+
+An application settings page will open
+
+1. **Application Name**: `GadgetBot Web`
+2. Select type as **Web**
 3. Click **Continue**
 
 ### 3.3 Configure Authentication Settings
@@ -60,9 +67,11 @@ Look for the message: `server is listening on [::]:8080`
    ```
    http://localhost:3000
    ```
-4. **Grant Types**: Ensure these are selected:
-   - ✅ Authorization Code
-5. Click **Continue**
+4. Click **Continue**
+
+You'll be taken to the application overview page with details that will later need to be further customized.
+
+5. Click **Create**
 
 ### 3.4 Copy Client ID
 
@@ -71,7 +80,7 @@ After creating the application, you'll see:
 
 > **Note**: When using PKCE authentication, no Client Secret is required or provided. This is more secure for public clients as there's no secret to compromise.
 
-### 3.5 Confirmation
+### 3.5 OIDC Configuration
 
 Select "Refresh Token" to add it to "Grant Types", then click **Save**.
 
