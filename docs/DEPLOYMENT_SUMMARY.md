@@ -1,6 +1,10 @@
 # GadgetBot Deployment - Quick Summary
 
-This document provides a high-level overview of the deployment setup. For detailed step-by-step instructions, see [DEPLOYMENT.md](./DEPLOYMENT.md).
+This document provides a high-level overview of the deployment setup.
+
+**Deployment Options:**
+- **[DEPLOYMENT_COOLIFY.md](./DEPLOYMENT_COOLIFY.md)** - ⭐ **Recommended** - Self-hosted Coolify with web UI (easiest)
+- **[DEPLOYMENT.md](./DEPLOYMENT.md)** - Manual Docker Compose deployment (full control)
 
 ## What You're Deploying
 
@@ -284,17 +288,24 @@ Update resource limits in `docker-compose.prod.yml` accordingly.
 2. Update `DATABASE_URL` to point to new host
 3. Configure PostgreSQL for remote connections
 
-## Cost Breakdown
+## Cost Breakdown (2025 Updated Pricing)
 
-| Item | Monthly | Annual | Notes |
-|------|---------|--------|-------|
-| VPS (CPX11) | €4.15 | €49.80 | Starter tier |
-| VPS (CPX21) | €8.90 | €106.80 | Recommended |
-| Domain | - | €10-15 | One-time yearly |
-| SSL Cert | Free | Free | Let's Encrypt |
-| Backups | Free | Free | On same VPS |
+| Deployment Method | Monthly | Annual | Notes |
+|------------------|---------|--------|-------|
+| **Coolify (CX23)** | €3.49 + domain | €42-57 | **Recommended** - 1-3 demo apps |
+| **Coolify (CX33)** | €5.49 + domain | €66-81 | 4-8 apps or production |
+| **Manual Docker (CX23)** | €3.49 + domain | €42-57 | Full control, CLI only |
+| **Manual Docker (CX33)** | €5.49 + domain | €66-81 | More capacity |
+| Domain | ~€1/month | €12-15 | One-time yearly |
+| SSL Certificates | Free | Free | Let's Encrypt |
+| Coolify Software | Free | Free | Self-hosted |
 
-**Total**: €50-110/year all-inclusive
+**Total with Coolify (CX23)**: €42-57/year all-inclusive for unlimited apps
+
+**Key Advantage**: With Coolify, you can host multiple demo apps on one VPS:
+- CX23 (€3.49/month): 3-4 apps
+- CX33 (€5.49/month): 6-8 apps
+- vs SaaS: $5-20/month **per app**
 
 ## Troubleshooting Quick Reference
 
@@ -309,18 +320,26 @@ Update resource limits in `docker-compose.prod.yml` accordingly.
 
 ## Getting Help
 
-- **Full Guide**: [DEPLOYMENT.md](./DEPLOYMENT.md)
-- **Checklist**: [DEPLOYMENT_CHECKLIST.md](./DEPLOYMENT_CHECKLIST.md)
+- **Coolify Deployment**: [DEPLOYMENT_COOLIFY.md](./DEPLOYMENT_COOLIFY.md) ⭐ Recommended
+- **Manual Deployment**: [DEPLOYMENT.md](./DEPLOYMENT.md)
+- **Coolify Docs**: https://coolify.io/docs
 - **Hetzner Docs**: https://docs.hetzner.com
 - **Zitadel Docs**: https://zitadel.com/docs
-- **Docker Compose**: https://docs.docker.com/compose/
 
-## Next Steps
+## Quick Start
 
-1. Read [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed instructions
-2. Use [DEPLOYMENT_CHECKLIST.md](./DEPLOYMENT_CHECKLIST.md) during deployment
-3. Test locally with `docker-compose.prod.yml` before deploying
-4. Have your `.env.production` ready with all secrets
-5. Budget 1-2 hours for first deployment
+**For demo apps (recommended):**
+1. Read [DEPLOYMENT_COOLIFY.md](./DEPLOYMENT_COOLIFY.md)
+2. Get Hetzner VPS CX23 (€3.49/month)
+3. Install Coolify (one command)
+4. Deploy via web UI
+5. Add more apps as needed (5 min each)
+
+**For full control:**
+1. Read [DEPLOYMENT.md](./DEPLOYMENT.md)
+2. Manual Docker Compose deployment
+3. CLI-based management
+
+**Time estimate:** 1-2 hours first deployment
 
 Good luck! 🚀

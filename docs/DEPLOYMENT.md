@@ -51,9 +51,9 @@ Before starting, you'll need:
 2. Choose location (closest to your users)
 3. Select image: **Ubuntu 22.04**
 4. Select type (2025 pricing):
-   - **Recommended for demo**: CX22 (2 vCPU, 4GB RAM, 40GB SSD) - €3.79/month
-   - **For better performance**: CX32 (4 vCPU, 8GB RAM, 80GB SSD) - €6.80/month
-   - **Production (AMD EPYC)**: CPX11 (2 vCPU, 4GB RAM, AMD) - €4.35/month
+   - **Budget/Testing**: CX23 (2 vCPU, 4GB RAM, 40GB SSD) - €3.49/month
+   - **Recommended for production**: CX33 (4 vCPU, 8GB RAM, 80GB SSD) - €5.49/month
+   - **ARM-based option**: CAX21 (4 vCPU, 8GB RAM, 80GB SSD, ARM) - €6.49/month
 5. Add SSH key:
    - If you don't have one, generate locally:
      ```bash
