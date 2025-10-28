@@ -19,6 +19,8 @@
     "zitadel:down": "docker compose -f docker-compose.zitadel.yml down",
     "zitadel:logs": "docker compose -f docker-compose.zitadel.yml logs -f",
     "zitadel:reset": "docker compose -f docker-compose.zitadel.yml down -v && docker compose -f docker-compose.zitadel.yml up -d",
+    "zitadel:export": "tsx ./scripts/zitadel-export.ts",
+    "zitadel:import": "tsx ./scripts/zitadel-import.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "node --import tsx ./src/db/migrate.ts",
     "db:studio": "drizzle-kit studio",
