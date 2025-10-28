@@ -55,6 +55,35 @@ curl http://localhost:8080/.well-known/openid-configuration
 
 ---
 
+## What Gets Migrated?
+
+### ✅ Configuration (Migrated)
+
+- **Projects** - Organizational structure (e.g., "GadgetBot")
+- **Roles** - Permission definitions (e.g., "admin", "user")
+- **Applications** - OAuth clients with redirect URIs
+- **Grants** - Authorization policies
+
+### ❌ User Data (NOT Migrated)
+
+- **Users** - User accounts and profiles
+- **Passwords/Credentials** - Authentication secrets
+- **User Role Assignments** - Which users have which roles
+- **Sessions** - Active user sessions
+- **Audit Logs** - Historical activity
+
+### Post-Migration Setup Required
+
+After importing to production:
+
+1. **Create admin user** in Zitadel Console
+2. **Assign admin role** to that user
+3. **Users sign up fresh** (or migrate separately if needed)
+
+> **Note:** This migration focuses on replicating your auth *structure*, not user data. Production typically starts with fresh user registrations.
+
+---
+
 ## Export Configuration
 
 ### Basic Export
