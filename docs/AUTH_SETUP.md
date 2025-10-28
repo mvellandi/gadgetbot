@@ -30,6 +30,7 @@ Look for the message: `server is listening on [::]:8080`
 2. Sign in with the default admin credentials:
    - **Email**: `admin@gadgetbot.localhost`
    - **Password**: `Admin123!`
+   - **New Password**: `Handybot123-`
 
    > **Note**: Zitadel login requires the email address, not the username.
 
