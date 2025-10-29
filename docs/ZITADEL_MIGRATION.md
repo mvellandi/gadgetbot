@@ -25,17 +25,37 @@ npm run zitadel:import
 You need a service user with **Organization Owner Manager** role:
 
 **In Zitadel Console:**
+
+**Part A: Create the Service User**
 1. Go to **Users** → **Service Users**
 2. Click **New**
-3. Name: `zitadel-migration`
+3. Fill in the form:
+   - **Username**: `zitadel-migration`
+   - **Name**: `zitadel-migration`
+   - **Access Token Type**: Select **JWT** (recommended)
+     - JWT tokens are self-contained and can be validated locally
+     - Bearer tokens require server-side introspection for every validation
 4. Click **Create**
-5. Go to **Authorizations** tab
-6. Add role: **Organization Owner Manager**
-7. Go to **Personal Access Tokens** tab
-8. Click **New**
-9. Copy the token (you won't see it again!)
 
-**Set token in your shell:**
+**Part B: Assign Organization Manager Role**
+1. Click on your organization name in the top-left dropdown (e.g., "GadgetBot")
+2. This opens the organization detail page
+3. Find and click the **"Add a Manager"** plus icon/button next to the "actions" button
+4. Search for and select **`zitadel-migration`** (your service user)
+5. Assign the role: **"ORG OWNER"** or **"Organization Owner Manager"**
+6. Click **Save**
+
+**Part C: Generate Personal Access Token**
+1. Go back to **Users** → **Service Users**
+2. Click on **`zitadel-migration`**
+3. Go to **Personal Access Tokens** tab
+4. Click **New**
+5. Copy the token (you won't see it again!)
+
+**Part D: Set Token in Your Shell**
+
+Set the token as an environment variable:
+
 ```bash
 export ZITADEL_SERVICE_TOKEN=<your-pat-token>
 ```
@@ -52,6 +72,23 @@ npm run zitadel:logs
 # Verify API is accessible
 curl http://localhost:8080/.well-known/openid-configuration
 ```
+
+**What to look for:** You should see JSON output with these key fields:
+
+- `"issuer": "http://localhost:8080"` - Confirms Zitadel is running
+- `"authorization_endpoint"`, `"token_endpoint"` - OAuth endpoints are configured
+- `"scopes_supported": ["openid", "profile", "email", ...]` - OIDC scopes available
+
+If you see a connection error or 404, Zitadel isn't fully initialized yet. Wait 30 seconds and try again.
+
+---
+
+## Next Steps
+
+Once prerequisites are complete, you can:
+
+1. **Export Configuration** (see below) - Capture your current Zitadel setup to a JSON file
+2. **Import Configuration** (see below) - Apply that configuration to another Zitadel instance
 
 ---
 

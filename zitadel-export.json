@@ -1,0 +1,160 @@
+{
+  "exportedAt": "2025-10-29T11:36:11.717Z",
+  "projects": [
+    {
+      "id": "344181831807167235",
+      "details": {
+        "sequence": "1",
+        "creationDate": "2025-10-28T09:39:19.345989Z",
+        "changeDate": "2025-10-28T09:39:19.345989Z",
+        "resourceOwner": "344181831807101699"
+      },
+      "name": "ZITADEL",
+      "state": "PROJECT_STATE_ACTIVE"
+    },
+    {
+      "id": "344183668895410947",
+      "details": {
+        "sequence": "1",
+        "creationDate": "2025-10-28T09:57:33.231170Z",
+        "changeDate": "2025-10-28T09:57:33.231170Z",
+        "resourceOwner": "344181831807101699"
+      },
+      "name": "GadgetBot",
+      "state": "PROJECT_STATE_ACTIVE"
+    }
+  ],
+  "applications": [
+    {
+      "id": "344181831807232771",
+      "details": {
+        "sequence": "4",
+        "creationDate": "2025-10-28T09:39:19.345989Z",
+        "changeDate": "2025-10-28T09:39:19.345989Z",
+        "resourceOwner": "344181831807101699"
+      },
+      "state": "APP_STATE_ACTIVE",
+      "name": "Management-API",
+      "apiConfig": {
+        "clientId": "344181833585421059@zitadel",
+        "authMethodType": "API_AUTH_METHOD_TYPE_PRIVATE_KEY_JWT"
+      }
+    },
+    {
+      "id": "344181831807298307",
+      "details": {
+        "sequence": "6",
+        "creationDate": "2025-10-28T09:39:19.345989Z",
+        "changeDate": "2025-10-28T09:39:19.345989Z",
+        "resourceOwner": "344181831807101699"
+      },
+      "state": "APP_STATE_ACTIVE",
+      "name": "Admin-API",
+      "apiConfig": {
+        "clientId": "344181833585486595@zitadel",
+        "authMethodType": "API_AUTH_METHOD_TYPE_PRIVATE_KEY_JWT"
+      }
+    },
+    {
+      "id": "344181831807363843",
+      "details": {
+        "sequence": "8",
+        "creationDate": "2025-10-28T09:39:19.345989Z",
+        "changeDate": "2025-10-28T09:39:19.345989Z",
+        "resourceOwner": "344181831807101699"
+      },
+      "state": "APP_STATE_ACTIVE",
+      "name": "Auth-API",
+      "apiConfig": {
+        "clientId": "344181833585552131@zitadel",
+        "authMethodType": "API_AUTH_METHOD_TYPE_PRIVATE_KEY_JWT"
+      }
+    },
+    {
+      "id": "344181831807429379",
+      "details": {
+        "sequence": "12",
+        "creationDate": "2025-10-28T09:39:19.345989Z",
+        "changeDate": "2025-10-28T09:39:19.345989Z",
+        "resourceOwner": "344181831807101699"
+      },
+      "state": "APP_STATE_ACTIVE",
+      "name": "Console",
+      "oidcConfig": {
+        "redirectUris": [
+          "http://zitadel-rejq65.localhost:8080/ui/console/auth/callback",
+          "http://localhost:8080/ui/console/auth/callback"
+        ],
+        "responseTypes": [
+          "OIDC_RESPONSE_TYPE_CODE"
+        ],
+        "grantTypes": [
+          "OIDC_GRANT_TYPE_AUTHORIZATION_CODE"
+        ],
+        "appType": "OIDC_APP_TYPE_USER_AGENT",
+        "clientId": "344181833585617667@zitadel",
+        "authMethodType": "OIDC_AUTH_METHOD_TYPE_NONE",
+        "postLogoutRedirectUris": [
+          "http://zitadel-rejq65.localhost:8080/ui/console/signedout",
+          "http://localhost:8080/ui/console/signedout"
+        ],
+        "noneCompliant": true,
+        "complianceProblems": [
+          {
+            "key": "Application.OIDC.V1.NotCompliant",
+            "localizedMessage": "Your configuration is not compliant and differs from OIDC 1.0 standard."
+          },
+          {
+            "key": "Application.OIDC.V1.NotCompliant",
+            "localizedMessage": "Your configuration is not compliant and differs from OIDC 1.0 standard."
+          },
+          {
+            "key": "Application.OIDC.V1.Code.RedirectUris.HttpOnlyForWeb",
+            "localizedMessage": "Grant type code only allowed http redirect uris for apptype web."
+          }
+        ],
+        "devMode": true,
+        "clockSkew": "0s",
+        "allowedOrigins": [
+          "http://zitadel-rejq65.localhost:8080",
+          "http://localhost:8080"
+        ]
+      }
+    },
+    {
+      "id": "344183822574709507",
+      "details": {
+        "sequence": "5",
+        "creationDate": "2025-10-28T09:59:04.834189Z",
+        "changeDate": "2025-10-28T10:00:51.765779Z",
+        "resourceOwner": "344181831807101699"
+      },
+      "state": "APP_STATE_ACTIVE",
+      "name": "GadgetBot Web",
+      "oidcConfig": {
+        "redirectUris": [
+          "http://localhost:3000/api/auth/callback/zitadel"
+        ],
+        "responseTypes": [
+          "OIDC_RESPONSE_TYPE_CODE"
+        ],
+        "grantTypes": [
+          "OIDC_GRANT_TYPE_AUTHORIZATION_CODE",
+          "OIDC_GRANT_TYPE_REFRESH_TOKEN"
+        ],
+        "clientId": "344183822574775043@gadgetbot",
+        "authMethodType": "OIDC_AUTH_METHOD_TYPE_NONE",
+        "postLogoutRedirectUris": [
+          "http://localhost:3000"
+        ],
+        "devMode": true,
+        "clockSkew": "0s",
+        "allowedOrigins": [
+          "http://localhost:3000"
+        ]
+      }
+    }
+  ],
+  "roles": [],
+  "grants": []
+}

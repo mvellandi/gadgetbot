@@ -20,12 +20,6 @@ const ZITADEL_API = process.env.ZITADEL_ISSUER_URL || 'http://localhost:8080'
 const OUTPUT_FILE = process.argv.find(arg => arg.startsWith('--output='))?.split('=')[1] ||
   resolve(process.cwd(), 'zitadel-export.json')
 
-interface ZitadelToken {
-  access_token: string
-  token_type: string
-  expires_in: number
-}
-
 interface ZitadelConfig {
   exportedAt: string
   zitadelVersion?: string
@@ -56,15 +50,23 @@ async function getServiceUserToken(): Promise<string> {
   return token
 }
 
-async function makeZitadelRequest(endpoint: string, token: string): Promise<unknown> {
+async function makeZitadelRequest(
+  endpoint: string,
+  token: string,
+  method: 'GET' | 'POST' = 'GET',
+  body?: unknown
+): Promise<unknown> {
   const url = `${ZITADEL_API}${endpoint}`
   console.log(`📡 Fetching ${endpoint}...`)
 
   const response = await fetch(url, {
+    method,
     headers: {
       'Authorization': `Bearer ${token}`,
       'Accept': 'application/json',
+      'Content-Type': 'application/json',
     },
+    body: body ? JSON.stringify(body) : undefined,
   })
 
   if (!response.ok) {
@@ -91,7 +93,18 @@ async function exportZitadelConfig(): Promise<void> {
   try {
     // Export projects
     console.log('\n📦 Exporting projects...')
-    const projectsData = await makeZitadelRequest('/management/v1/projects/_search', token)
+    const projectsData = await makeZitadelRequest(
+      '/management/v1/projects/_search',
+      token,
+      'POST',
+      {
+        query: {
+          offset: 0,
+          limit: 100,
+          asc: true,
+        },
+      }
+    )
     config.projects = (projectsData as { result?: unknown[] })?.result || []
     console.log(`✓ Exported ${config.projects.length} projects`)
 
@@ -104,7 +117,15 @@ async function exportZitadelConfig(): Promise<void> {
       // Export applications
       const appsData = await makeZitadelRequest(
         `/management/v1/projects/${project.id}/apps/_search`,
-        token
+        token,
+        'POST',
+        {
+          query: {
+            offset: 0,
+            limit: 100,
+            asc: true,
+          },
+        }
       )
       const apps = (appsData as { result?: unknown[] })?.result || []
       config.applications.push(...apps)
@@ -113,7 +134,15 @@ async function exportZitadelConfig(): Promise<void> {
       // Export roles
       const rolesData = await makeZitadelRequest(
         `/management/v1/projects/${project.id}/roles/_search`,
-        token
+        token,
+        'POST',
+        {
+          query: {
+            offset: 0,
+            limit: 100,
+            asc: true,
+          },
+        }
       )
       const roles = (rolesData as { result?: unknown[] })?.result || []
       config.roles.push(...roles)
@@ -122,7 +151,15 @@ async function exportZitadelConfig(): Promise<void> {
       // Export grants
       const grantsData = await makeZitadelRequest(
         `/management/v1/projects/${project.id}/grants/_search`,
-        token
+        token,
+        'POST',
+        {
+          query: {
+            offset: 0,
+            limit: 100,
+            asc: true,
+          },
+        }
       )
       const grants = (grantsData as { result?: unknown[] })?.result || []
       config.grants.push(...grants)
