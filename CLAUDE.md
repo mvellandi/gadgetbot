@@ -4,32 +4,45 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Table of Contents
 
-- [Quick Start](#quick-start)
-- [Project Overview](#project-overview)
-- [Development Commands](#development-commands)
-- [Architecture Overview](#architecture-overview)
-  - [Current Structure](#current-structure)
-  - [Routing System](#routing-system-file-based)
-  - [oRPC Integration](#orpc-integration-type-safe-rpc)
-  - [Effect Integration](#effect-integration)
-  - [State Management](#state-management-web-specific)
-  - [Database Layer](#database-layer-postgresql--drizzle--effect)
-  - [Environment Variables](#environment-variables)
-  - [Styling](#styling-web-specific)
-  - [Code Quality](#code-quality)
-  - [Polyfills](#polyfills)
-  - [Authentication](#authentication)
-- [Important Patterns](#important-patterns)
-  - [Creating API Endpoints](#creating-api-endpoints)
-  - [Effect Error Handling](#effect-error-handling)
-  - [Testing Patterns](#testing-patterns)
-  - [Domain-Driven Design](#domain-driven-design-inspired-by-elixir-ash)
-- [Standard Schema Integration](#standard-schema-integration)
-- [Multi-Client Architecture Benefits](#multi-client-architecture-benefits)
-- [Troubleshooting](#troubleshooting)
-- [Appendix](#appendix)
-  - [Demo App](#demo-app)
-  - [Cursor Rules](#cursor-rules)
+- [CLAUDE.md](#claudemd)
+  - [Table of Contents](#table-of-contents)
+  - [Quick Start](#quick-start)
+  - [Project Overview](#project-overview)
+  - [Development Commands](#development-commands)
+  - [Architecture Overview](#architecture-overview)
+    - [Current Structure](#current-structure)
+    - [Routing System (File-Based)](#routing-system-file-based)
+    - [oRPC Integration (Type-Safe RPC)](#orpc-integration-type-safe-rpc)
+    - [Effect Integration](#effect-integration)
+    - [State Management (Web-Specific)](#state-management-web-specific)
+    - [Database Layer (PostgreSQL + Drizzle + Effect)](#database-layer-postgresql--drizzle--effect)
+    - [Environment Variables](#environment-variables)
+    - [Styling (Web-Specific)](#styling-web-specific)
+    - [Code Quality](#code-quality)
+    - [Polyfills](#polyfills)
+    - [Authentication](#authentication)
+  - [Important Patterns](#important-patterns)
+    - [Creating API Endpoints](#creating-api-endpoints)
+    - [Effect Error Handling](#effect-error-handling)
+    - [Isomorphic Code](#isomorphic-code)
+    - [Route Loading](#route-loading)
+    - [Testing Patterns](#testing-patterns)
+    - [Domain-Driven Design (Inspired by Elixir Ash)](#domain-driven-design-inspired-by-elixir-ash)
+  - [Standard Schema Integration](#standard-schema-integration)
+    - [Using Effect Schema with oRPC](#using-effect-schema-with-orpc)
+    - [Using Effect Schema with TanStack Form](#using-effect-schema-with-tanstack-form)
+    - [Exceptions: Libraries Requiring Zod](#exceptions-libraries-requiring-zod)
+  - [Multi-Client Architecture Benefits](#multi-client-architecture-benefits)
+    - [Client Types](#client-types)
+    - [Architectural Layers](#architectural-layers)
+    - [Key Principles](#key-principles)
+    - [Example Usage Patterns](#example-usage-patterns)
+  - [Troubleshooting](#troubleshooting)
+    - [Common Issues](#common-issues)
+    - [Getting Help](#getting-help)
+  - [Appendix](#appendix)
+    - [Demo App](#demo-app)
+    - [Cursor Rules](#cursor-rules)
 
 ---
 
@@ -48,11 +61,16 @@ npm run docker:up
 npm run db:migrate
 npm run db:seed
 
-# 4. Start development server
+# 4. Start Zitadel (authentication)
+npm run zitadel:up
+
+# 5. Start development server
 npm run dev
 
-# 5. Open browser to http://localhost:3000
+# 6. Open browser to http://localhost:3000
 ```
+
+> **Note:** For full authentication setup (creating OAuth apps, etc.), see [docs/AUTH_SETUP.md](docs/AUTH_SETUP.md)
 
 **Try the REPL** (for testing domain operations):
 ```bash
@@ -66,6 +84,7 @@ npm run repl
 - Add a Shadcn component: `pnpx shadcn@latest add button`
 - Create an oRPC procedure: See [Creating API Endpoints](#creating-api-endpoints)
 - Test database operations: Use `npm run repl` or `npm run db:studio`
+- Setup authentication: See [docs/AUTH_SETUP.md](docs/AUTH_SETUP.md)
 
 ---
 
@@ -89,6 +108,7 @@ npm run dev              # Start dev server on port 3000
 
 # Build & Deploy
 npm run build            # Build for production
+npm run build:clear      # Clear build cache (.vinxi directory)
 npm run serve            # Preview production build
 
 # Code Quality
@@ -109,8 +129,17 @@ npm run db:studio        # Open Drizzle Studio (visual DB manager)
 npm run db:seed          # Seed database with sample data
 npm run db:reset         # Reset database (drop, migrate, seed)
 
-# CLI REPL (for testing domain operations)
+# Zitadel (Authentication)
+npm run zitadel:up       # Start Zitadel container
+npm run zitadel:down     # Stop Zitadel container
+npm run zitadel:logs     # View Zitadel logs
+npm run zitadel:reset    # Reset Zitadel (down -v, then up)
+npm run zitadel:export   # Export Zitadel configuration to JSON
+npm run zitadel:import   # Import Zitadel configuration from JSON
+
+# CLI Tools
 npm run repl             # Start Node REPL with pre-loaded modules
+npm run test:domain      # Test domain API operations
 ```
 
 ## Architecture Overview
@@ -447,9 +476,8 @@ pnpx shadcn@latest add form
 
 This project uses **Zitadel OAuth** with **Better Auth** integration. For complete documentation, see:
 
-- 📖 [AUTH_SETUP.md](./docs/AUTH_SETUP.md) - Setup guide
-- 📖 [AUTH_PATTERNS.md](./docs/AUTH_PATTERNS.md) - Development patterns
-- 📊 [AUTH_IMPLEMENTATION_STATUS.md](./docs/AUTH_IMPLEMENTATION_STATUS.md) - Implementation tracking
+- 📖 [docs/AUTH_SETUP.md](docs/AUTH_SETUP.md) - Setup guide
+- 📖 [docs/AUTH_PATTERNS.md](docs/AUTH_PATTERNS.md) - Development patterns
 
 **Key Architecture:**
 
@@ -466,6 +494,7 @@ User → Better Auth Client → Better Auth Server → Zitadel OAuth
 - Protected routes with `beforeLoad` guards
 - Domain-level authorization checks
 - User authentication UI (login, user menu, sign out)
+- Configuration migration tools (export/import for deployment)
 
 **Key Files:**
 
@@ -473,6 +502,16 @@ User → Better Auth Client → Better Auth Server → Zitadel OAuth
 - [src/web/auth/client.ts](src/web/auth/client.ts) - Browser client
 - [src/orpc/context.ts](src/orpc/context.ts) - Authentication context for oRPC
 - [src/web/routes/admin.tsx](src/web/routes/admin.tsx) - Protected admin layout
+- [scripts/zitadel-export.ts](scripts/zitadel-export.ts) - Export Zitadel config
+- [scripts/zitadel-import.ts](scripts/zitadel-import.ts) - Import Zitadel config
+
+**Deployment:**
+
+For production deployment instructions, see:
+
+- 📖 [docs/DEPLOYMENT_SUMMARY.md](docs/DEPLOYMENT_SUMMARY.md) - Deployment overview
+- 📖 [docs/DEPLOYMENT_COOLIFY.md](docs/DEPLOYMENT_COOLIFY.md) - Recommended: Deploy with Coolify
+- 📖 [docs/DEPLOYMENT_MANUAL.md](docs/DEPLOYMENT_MANUAL.md) - Manual Docker Compose deployment
 
 ## Important Patterns
 

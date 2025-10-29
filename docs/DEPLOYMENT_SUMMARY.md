@@ -4,7 +4,7 @@ This document provides a high-level overview of the deployment setup.
 
 **Deployment Options:**
 - **[DEPLOYMENT_COOLIFY.md](./DEPLOYMENT_COOLIFY.md)** - ⭐ **Recommended** - Self-hosted Coolify with web UI (easiest)
-- **[DEPLOYMENT.md](./DEPLOYMENT.md)** - Manual Docker Compose deployment (full control)
+- **[DEPLOYMENT_MANUAL.md](./DEPLOYMENT_MANUAL.md)** - Manual Docker Compose deployment (full control)
 
 ## What You're Deploying
 
