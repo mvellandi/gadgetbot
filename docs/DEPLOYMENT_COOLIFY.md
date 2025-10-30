@@ -138,7 +138,7 @@ Based on your resource needs:
    ssh-keygen -t ed25519 -C "your_email@example.com"
    cat ~/.ssh/id_ed25519.pub  # Copy and paste into Hetzner
    ```
-7. **Name**: `gadgetbot-prod`
+7. **Name**: `gadgetbot-cx23`
 8. Click "Create & Buy now"
 
 ### 1.4 Note Your Server IP
