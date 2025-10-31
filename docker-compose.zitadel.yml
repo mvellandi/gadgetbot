@@ -1,6 +1,6 @@
 services:
   zitadel-db:
-    image: postgres:16-alpine
+    image: postgres:17-alpine
     container_name: gadgetbot-zitadel-db
     restart: unless-stopped
     environment:

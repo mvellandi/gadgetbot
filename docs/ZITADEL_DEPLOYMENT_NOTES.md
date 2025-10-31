@@ -99,7 +99,7 @@
 Located at: `docker-compose.zitadel-coolify.yml`
 
 Key components:
-- Postgres 16 Alpine (matching local dev)
+- Postgres 17 Alpine (matching local dev)
 - Coolify network connection for Traefik routing
 - Health checks for both Zitadel and PostgreSQL
 - Proper Traefik labels (though may need adjustment)
