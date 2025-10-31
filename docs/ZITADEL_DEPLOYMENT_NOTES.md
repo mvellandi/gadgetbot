@@ -129,112 +129,52 @@ ZITADEL_ADMIN_PASSWORD=<generated>
 
 ---
 
-## Next Steps for Fresh Attempt
+## ✅ Recommended Approach: Minimal Docker Compose
 
-### Step 1: Clean Up
-1. Delete existing Zitadel docker-compose service in Coolify
-2. Go to "Persistent Storages"
-3. Delete all "Zitadel Db" volumes
-4. Verify clean state
+**⚠️ UPDATE 2025-10-31**: After discovering Coolify's Docker Image UI doesn't support custom start commands, we've switched to a **minimal Docker Compose** approach.
 
-### Step 2: Research Coolify Docker Compose Routing
-Before creating new service, understand:
-- How does Coolify handle domain routing for docker-compose?
-- Is there a specific label format Coolify expects?
-- Check Coolify docs: https://coolify.io/docs
-- Look for docker-compose examples with multiple services
+### Complete Deployment Guide
 
-### Step 3: Create Service
-1. Coolify → + New → Docker Compose (Empty)
-2. Use `docker-compose.zitadel-coolify.yml` as base
-3. Configure environment variables
-4. **Key Question**: Where/how to specify which service gets the domain?
+**📖 See**: [ZITADEL_COOLIFY_COMPOSE.md](./ZITADEL_COOLIFY_COMPOSE.md) for step-by-step instructions.
+
+**Key files:**
+- `docker-compose.zitadel-minimal.yml` - Single-service compose file
+- `.env.zitadel.example` - Environment variable template
+
+### Why Minimal Docker Compose Works
+
+The original complex Docker Compose attempts failed due to features that trigger Coolify's parser bugs. The new minimal approach:
+
+**Avoids:**
+- ❌ No `depends_on` with conditions (triggers parsing errors)
+- ❌ No embedded healthchecks (Coolify manages separately)
+- ❌ No multi-service definitions (PostgreSQL deployed separately)
+- ❌ No init containers or complex setup
+
+**Uses:**
+- ✅ Single service (Zitadel only)
+- ✅ External PostgreSQL (separate Coolify resource)
+- ✅ Simple array command format: `['start-from-init', '--masterkeyFromEnv', '--tlsMode', 'external']`
+- ✅ Clean environment variable substitution
+
+### Quick Start
+
+1. Create PostgreSQL database in Coolify (name: `zitadel-db`)
+2. Commit `docker-compose.zitadel-minimal.yml` to Git
+3. Create Docker Compose resource in Coolify
+4. Configure environment variables from `.env.zitadel.example`
+5. Deploy and wait for initialization
+6. Create first admin user via Zitadel Console
 
 ---
 
-## Recommended Approach: Docker Image Deployment
+## ~~Docker Image Deployment~~ (Deprecated - Doesn't Work)
 
-**⚠️ IMPORTANT**: After multiple failed attempts, Docker Compose is NOT viable in Coolify due to persistent routing bugs. Use the Docker Image approach instead.
+**❌ This approach failed**: Coolify's Docker Image UI has no field for custom start commands. The "Custom Docker Options" field is only for build-time Docker arguments, not runtime commands.
 
-### Why Docker Image Over Docker Compose?
+**Error observed**: Container starts with no command, displays Zitadel help text, and restarts continuously.
 
-**Pros:**
-
-- ✅ Clear Port field in UI (no ambiguity)
-- ✅ Coolify handles Traefik routing automatically (no manual labels needed)
-- ✅ Much easier to debug (single container, clear logs)
-- ✅ Proven to work in Coolify with other services (gadgetbot-db works perfectly)
-- ✅ Separate resources = better isolation and management
-
-**Cons:**
-
-- Two separate resources to manage (Database + Application)
-- Must manually configure database connection string
-- (But these are actually advantages for production deployments)
-
-### Step-by-Step Deployment
-
-#### 1. Create PostgreSQL Database
-
-In Coolify:
-
-1. **+ New Resource** → **Database** → **PostgreSQL**
-2. Configuration:
-   - **Name**: `zitadel-db`
-   - **Version**: 17 (Coolify only supports 17)
-   - **Database Name**: `zitadel`
-   - **Username**: `zitadel_admin`
-   - **Password**: (auto-generated - save this!)
-3. Click **Create**
-4. Wait for database to be healthy
-5. Note the internal connection details (shown in database overview)
-
-#### 2. Deploy Zitadel as Docker Image
-
-In Coolify:
-
-1. **+ New Resource** → **Application** → **Docker Image**
-2. Configuration:
-   - **Image**: `ghcr.io/zitadel/zitadel:latest`
-   - **Name**: `zitadel`
-   - **Domain**: `https://gadgetbot-auth.vellandi.net`
-   - **Port**: `8080`
-   - **Start Command**: `start-from-init --masterkeyFromEnv --tlsMode external`
-3. **Environment Variables** (see below)
-4. **Health Check**: Path = `/debug/healthz`
-5. Click **Deploy**
-
-#### 3. Environment Variables for Zitadel
-
-```bash
-# Database (use internal connection from step 1)
-ZITADEL_DATABASE_POSTGRES_HOST=zitadel-db  # Internal Docker hostname
-ZITADEL_DATABASE_POSTGRES_PORT=5432
-ZITADEL_DATABASE_POSTGRES_DATABASE=zitadel
-ZITADEL_DATABASE_POSTGRES_USER_USERNAME=zitadel_user
-ZITADEL_DATABASE_POSTGRES_USER_PASSWORD=<generate: openssl rand -base64 16>
-ZITADEL_DATABASE_POSTGRES_USER_SSL_MODE=disable
-ZITADEL_DATABASE_POSTGRES_ADMIN_USERNAME=zitadel_admin
-ZITADEL_DATABASE_POSTGRES_ADMIN_PASSWORD=<from step 1>
-ZITADEL_DATABASE_POSTGRES_ADMIN_SSL_MODE=disable
-
-# External domain
-ZITADEL_EXTERNALDOMAIN=gadgetbot-auth.vellandi.net
-ZITADEL_EXTERNALPORT=443
-ZITADEL_EXTERNALSECURE=true
-ZITADEL_TLS_ENABLED=false
-
-# Master key (32-char hex)
-ZITADEL_MASTERKEY=<generate: openssl rand -hex 16>
-```
-
-#### 4. After Deployment
-
-1. Wait for Zitadel to initialize (2-3 minutes)
-2. Access: `https://gadgetbot-auth.vellandi.net`
-3. Create first admin user via Zitadel Console
-4. Configure OAuth applications
-5. Export configuration for migration (see ZITADEL_MIGRATION.md)
+**Use Minimal Docker Compose instead** (see above).
 
 ---
 
@@ -302,15 +242,18 @@ Includes:
 
 ### Immediate Tasks
 
-1. **Clean up failed Docker Compose deployment**:
-   - Stop and delete Zitadel Docker Compose service in Coolify
+1. **Clean up failed deployments**:
+   - Stop and delete any existing Zitadel services in Coolify
    - Delete all Zitadel-related volumes in "Persistent Storages"
    - Verify clean state before proceeding
 
-2. **Deploy using Docker Image approach** (follow steps above):
-   - Create PostgreSQL 17 database
-   - Deploy Zitadel as Docker Image (NOT Docker Compose)
-   - Configure environment variables
+2. **Deploy using Minimal Docker Compose** (see [ZITADEL_COOLIFY_COMPOSE.md](./ZITADEL_COOLIFY_COMPOSE.md)):
+   - Create PostgreSQL 17 database (if not exists)
+   - Create regular `zitadel_user` in PostgreSQL
+   - Generate master key: `openssl rand -hex 16`
+   - Commit `docker-compose.zitadel-minimal.yml` to Git
+   - Create Docker Compose resource in Coolify
+   - Configure environment variables from `.env.zitadel.example`
    - Wait for initialization (monitor logs)
 
 3. **Initial Configuration**:
@@ -341,4 +284,4 @@ Includes:
 
 ---
 
-**Remember**: Docker Image deployment is the proven approach. Don't waste time on Docker Compose - it has unfixable routing bugs in Coolify.
+**Remember**: Use the **Minimal Docker Compose** approach documented in [ZITADEL_COOLIFY_COMPOSE.md](./ZITADEL_COOLIFY_COMPOSE.md). Docker Image deployment doesn't work (no start command field), and complex Docker Compose files trigger parser bugs.
