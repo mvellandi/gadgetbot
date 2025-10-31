@@ -134,7 +134,7 @@ ZITADEL_ADMIN_PASSWORD=<generated>
 ### Step 1: Clean Up
 1. Delete existing Zitadel docker-compose service in Coolify
 2. Go to "Persistent Storages"
-3. Delete ALL 3 duplicate "Zitadel Db" volumes
+3. Delete all "Zitadel Db" volumes
 4. Verify clean state
 
 ### Step 2: Research Coolify Docker Compose Routing
