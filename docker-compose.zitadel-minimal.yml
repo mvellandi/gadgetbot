@@ -27,3 +27,9 @@ services:
 
       # Master Key (required for encryption)
       ZITADEL_MASTERKEY: ${ZITADEL_MASTERKEY}
+    networks:
+      - coolify
+
+networks:
+  coolify:
+    external: true
