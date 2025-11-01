@@ -36,6 +36,16 @@
 
 ---
 
+## Documentation
+
+- 📖 [ZITADEL_USERNAME_EMAIL_ARCHITECTURE.md](./ZITADEL_USERNAME_EMAIL_ARCHITECTURE.md) - Complete guide to Zitadel's username/email system
+  - Database schema deep dive
+  - Login resolution algorithm
+  - How to change usernames and emails
+  - Best practices for deployment
+
+---
+
 ## Critical Findings
 
 ### 1. Login V2 Issue
@@ -49,7 +59,27 @@
 - **Important**: Requires clean database - setting won't take effect if database already has Login V2 configured
 - Must drop and recreate database if previously initialized with Login V2 enabled
 
-### 2. Username Format
+### 2. Email Environment Variable is Ignored
+
+**Problem**: `ZITADEL_FIRSTINSTANCE_ORG_HUMAN_EMAIL` environment variable is **completely ignored** during first instance creation.
+
+**Evidence**: Production deployment with `ZITADEL_FIRSTINSTANCE_ORG_HUMAN_EMAIL=dev@vellandi.net` created user with email `admin@gadgetbot.gadgetbot-auth.vellandi.net` instead.
+
+**Actual behavior**: Zitadel auto-generates the email to match the username format (see below).
+
+**Workaround**: After deployment, change email manually via:
+- Zitadel Console UI (requires SMTP for verification)
+- Direct PostgreSQL update:
+  ```sql
+  UPDATE projections.users14_humans
+  SET email = 'your-desired-email@example.com',
+      is_email_verified = true
+  WHERE user_id = '<user_id>';
+  ```
+
+**See**: [ZITADEL_USERNAME_EMAIL_ARCHITECTURE.md](./ZITADEL_USERNAME_EMAIL_ARCHITECTURE.md) for complete details.
+
+### 3. Username Format
 
 **Discovery**: Zitadel auto-generates usernames in this format:
 
