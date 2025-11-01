@@ -129,9 +129,11 @@ ZITADEL_ADMIN_PASSWORD=<generated>
 
 ---
 
-## ✅ Recommended Approach: Minimal Docker Compose
+## ✅ Recommended Approach: Minimal Docker Compose ✅ WORKING
 
-**⚠️ UPDATE 2025-10-31**: After discovering Coolify's Docker Image UI doesn't support custom start commands, we've switched to a **minimal Docker Compose** approach.
+**⚠️ UPDATE 2025-11-01**: Successfully deployed Zitadel using minimal Docker Compose approach!
+
+**Status**: ✅ DEPLOYMENT SUCCESSFUL
 
 ### Complete Deployment Guide
 
@@ -281,6 +283,101 @@ Includes:
 - ✅ OAuth application created and working
 - ✅ Configuration exported and saved
 - ✅ Application can authenticate users via Zitadel
+
+---
+
+## 🎉 Successful Deployment Summary (2025-11-01)
+
+### Critical Findings
+
+**The Login V2 Issue:**
+- **Problem**: Zitadel v4.x enables Login V2 by default, which requires a separate login application
+- **Symptom**: `{"code":5, "message":"Not Found"}` error when accessing console
+- **Solution**: Add `ZITADEL_DEFAULTINSTANCE_FEATURES_LOGINV2_REQUIRED=false` environment variable
+- **Important**: Requires clean database - setting won't take effect if database already has Login V2 configured
+
+**Database Reset Requirement:**
+- Once Zitadel initializes with Login V2 enabled, you MUST drop and recreate the database
+- Simply adding the environment variable to existing deployment won't work
+- Steps:
+  1. Stop Zitadel container in Coolify
+  2. `DROP DATABASE zitadel;`
+  3. `CREATE DATABASE zitadel OWNER zitadel_user;`
+  4. `GRANT ALL PRIVILEGES ON DATABASE zitadel TO zitadel_user;`
+  5. Add `ZITADEL_DEFAULTINSTANCE_FEATURES_LOGINV2_REQUIRED=false` to environment variables
+  6. Redeploy
+
+**Username Format:**
+- FIRSTINSTANCE variables create user with format: `{username}@{org_name}.{external_domain}`
+- Example: If `ZITADEL_FIRSTINSTANCE_ORG_HUMAN_USERNAME=admin` and `ZITADEL_FIRSTINSTANCE_ORG_NAME=GadgetBot` and `ZITADEL_EXTERNALDOMAIN=gadgetbot-auth.vellandi.net`
+- Actual username: `admin@gadgetbot.gadgetbot-auth.vellandi.net`
+- Use this full username to log in (not just "admin")
+
+**Network Configuration:**
+- PostgreSQL container name in Coolify: Use actual container ID (e.g., `l8o8sws4o0000cgkk44ck80s`)
+- NOT the friendly name "zitadel-db"
+- Set `ZITADEL_DATABASE_POSTGRES_HOST=<actual_container_id>`
+- Both containers must be on `coolify` network (add `networks: - coolify` to compose file)
+
+### Final Working Configuration
+
+**Required Environment Variables:**
+```bash
+# Database connection (use actual container ID)
+ZITADEL_DATABASE_POSTGRES_HOST=l8o8sws4o0000cgkk44ck80s
+ZITADEL_DATABASE_POSTGRES_PORT=5432
+ZITADEL_DATABASE_POSTGRES_DATABASE=zitadel
+ZITADEL_DATABASE_POSTGRES_USER_USERNAME=zitadel_user
+ZITADEL_DATABASE_POSTGRES_USER_PASSWORD=<generated>
+ZITADEL_DATABASE_POSTGRES_USER_SSL_MODE=disable
+ZITADEL_DATABASE_POSTGRES_ADMIN_USERNAME=zitadel_admin
+ZITADEL_DATABASE_POSTGRES_ADMIN_PASSWORD=<from_coolify>
+ZITADEL_DATABASE_POSTGRES_ADMIN_SSL_MODE=disable
+
+# External domain
+ZITADEL_EXTERNALDOMAIN=gadgetbot-auth.vellandi.net
+ZITADEL_EXTERNALPORT=443
+ZITADEL_EXTERNALSECURE=true
+ZITADEL_TLS_ENABLED=false
+
+# Master key (32 hex chars)
+ZITADEL_MASTERKEY=<openssl_rand_hex_16>
+
+# First instance (creates admin user)
+ZITADEL_FIRSTINSTANCE_ORG_NAME=GadgetBot
+ZITADEL_FIRSTINSTANCE_ORG_HUMAN_USERNAME=admin
+ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORD=<secure_password>
+ZITADEL_FIRSTINSTANCE_ORG_HUMAN_EMAIL=<your_email>
+
+# Logging
+ZITADEL_LOG_LEVEL=info
+
+# CRITICAL: Disable Login V2
+ZITADEL_DEFAULTINSTANCE_FEATURES_LOGINV2_REQUIRED=false
+```
+
+**Docker Compose File:**
+- Located: `docker-compose.zitadel-minimal.yml`
+- Key points:
+  - Single service (zitadel only)
+  - Array command format: `['start-from-init', '--masterkeyFromEnv', '--tlsMode', 'external']`
+  - Network: `coolify` (external: true)
+  - No healthcheck in compose file (Coolify manages)
+  - No ports published (use `expose: - "8080"`)
+
+### Deployment Steps That Worked
+
+1. ✅ Create PostgreSQL database in Coolify (separate resource)
+2. ✅ Create `zitadel_user` with `CREATE USER zitadel_user WITH PASSWORD '...';`
+3. ✅ Grant privileges: `GRANT ALL PRIVILEGES ON DATABASE zitadel TO zitadel_user;`
+4. ✅ Commit `docker-compose.zitadel-minimal.yml` to Git (with Login V2 disabled)
+5. ✅ Create Docker Compose resource in Coolify
+6. ✅ Configure ALL environment variables (especially `ZITADEL_DEFAULTINSTANCE_FEATURES_LOGINV2_REQUIRED=false`)
+7. ✅ Deploy and wait for initialization (2-3 minutes)
+8. ✅ Access console: `https://gadgetbot-auth.vellandi.net/ui/console`
+9. ✅ Login with full username: `admin@gadgetbot.gadgetbot-auth.vellandi.net`
+
+**Total deployment time**: ~30 minutes (including database reset)
 
 ---
 
