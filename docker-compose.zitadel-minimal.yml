@@ -39,6 +39,9 @@ services:
 
       # Logging
       ZITADEL_LOG_LEVEL: ${ZITADEL_LOG_LEVEL:-info}
+
+      # Disable Login V2 (not supported in single-container deployments)
+      ZITADEL_DEFAULTINSTANCE_FEATURES_LOGINV2_REQUIRED: ${ZITADEL_DEFAULTINSTANCE_FEATURES_LOGINV2_REQUIRED:-false}
     networks:
       - coolify
 
