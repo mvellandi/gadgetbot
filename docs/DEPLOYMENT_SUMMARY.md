@@ -2,9 +2,11 @@
 
 This document provides a high-level overview of the deployment setup.
 
-**Deployment Options:**
-- **[DEPLOYMENT_COOLIFY.md](./DEPLOYMENT_COOLIFY.md)** - ⭐ **Recommended** - Self-hosted Coolify with web UI (easiest)
-- **[DEPLOYMENT_MANUAL.md](./DEPLOYMENT_MANUAL.md)** - Manual Docker Compose deployment (full control)
+**Deployment Method:**
+- **[DEPLOYMENT_COOLIFY.md](./DEPLOYMENT_COOLIFY.md)** - ⭐ **Recommended** - Self-hosted Coolify with web UI
+
+**Zitadel-Specific Guide:**
+- **[ZITADEL_COOLIFY_COMPOSE.md](./ZITADEL_COOLIFY_COMPOSE.md)** - Step-by-step guide for deploying Zitadel on Coolify
 
 ## What You're Deploying
 
@@ -50,23 +52,18 @@ Internet
 
 ```
 gadgetbot/
-├── docker-compose.prod.yml     # Production Docker Compose config
-├── Dockerfile                  # Application container build
-├── zitadel-config.yaml        # Zitadel production settings
-├── .env.production.example    # Environment template
-├── nginx/
-│   ├── nginx.conf             # Nginx main config
-│   └── conf.d/
-│       └── default.conf       # App and Zitadel routing
+├── docker-compose.zitadel-prod.yml  # Zitadel Docker Compose for Coolify
+├── docker-compose.zitadel.yml       # Zitadel for local development
+├── .env.zitadel.example             # Zitadel environment template
+├── zitadel-export.json              # OAuth configuration export
 ├── scripts/
-│   ├── deploy.sh              # Automated deployment
-│   ├── backup-db.sh           # Database backup
-│   ├── restore-db.sh          # Database restore
-│   └── logs.sh                # Log viewer
+│   ├── zitadel-export.ts           # Export Zitadel configuration
+│   └── zitadel-import.ts           # Import Zitadel configuration
 └── docs/
-    ├── DEPLOYMENT.md          # Full deployment guide
-    ├── DEPLOYMENT_CHECKLIST.md # Step-by-step checklist
-    └── DEPLOYMENT_SUMMARY.md  # This file
+    ├── DEPLOYMENT_COOLIFY.md        # Coolify deployment guide
+    ├── DEPLOYMENT_SUMMARY.md        # This file (overview)
+    ├── ZITADEL_COOLIFY_COMPOSE.md   # Zitadel-specific deployment
+    └── ZITADEL_DEPLOYMENT_NOTES.md  # Deployment findings
 ```
 
 ## Resource Requirements
@@ -321,24 +318,21 @@ Update resource limits in `docker-compose.prod.yml` accordingly.
 ## Getting Help
 
 - **Coolify Deployment**: [DEPLOYMENT_COOLIFY.md](./DEPLOYMENT_COOLIFY.md) ⭐ Recommended
-- **Manual Deployment**: [DEPLOYMENT.md](./DEPLOYMENT.md)
-- **Coolify Docs**: https://coolify.io/docs
-- **Hetzner Docs**: https://docs.hetzner.com
-- **Zitadel Docs**: https://zitadel.com/docs
+- **Zitadel Deployment**: [ZITADEL_COOLIFY_COMPOSE.md](./ZITADEL_COOLIFY_COMPOSE.md)
+- **Coolify Docs**: <https://coolify.io/docs>
+- **Hetzner Docs**: <https://docs.hetzner.com>
+- **Zitadel Docs**: <https://zitadel.com/docs>
 
 ## Quick Start
 
-**For demo apps (recommended):**
+**Deploying GadgetBot with Coolify:**
+
 1. Read [DEPLOYMENT_COOLIFY.md](./DEPLOYMENT_COOLIFY.md)
 2. Get Hetzner VPS CX23 (€3.49/month)
 3. Install Coolify (one command)
-4. Deploy via web UI
-5. Add more apps as needed (5 min each)
-
-**For full control:**
-1. Read [DEPLOYMENT.md](./DEPLOYMENT.md)
-2. Manual Docker Compose deployment
-3. CLI-based management
+4. Deploy PostgreSQL database
+5. Deploy Zitadel using [ZITADEL_COOLIFY_COMPOSE.md](./ZITADEL_COOLIFY_COMPOSE.md)
+6. Deploy GadgetBot application via web UI
 
 **Time estimate:** 1-2 hours first deployment
 

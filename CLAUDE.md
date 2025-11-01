@@ -510,8 +510,9 @@ User → Better Auth Client → Better Auth Server → Zitadel OAuth
 For production deployment instructions, see:
 
 - 📖 [docs/DEPLOYMENT_SUMMARY.md](docs/DEPLOYMENT_SUMMARY.md) - Deployment overview
-- 📖 [docs/DEPLOYMENT_COOLIFY.md](docs/DEPLOYMENT_COOLIFY.md) - Recommended: Deploy with Coolify
-- 📖 [docs/DEPLOYMENT_MANUAL.md](docs/DEPLOYMENT_MANUAL.md) - Manual Docker Compose deployment
+- 📖 [docs/DEPLOYMENT_COOLIFY.md](docs/DEPLOYMENT_COOLIFY.md) - Deploy with Coolify (recommended)
+- 📖 [docs/ZITADEL_COOLIFY_COMPOSE.md](docs/ZITADEL_COOLIFY_COMPOSE.md) - Zitadel deployment guide
+- 📖 [docs/ZITADEL_DEPLOYMENT_NOTES.md](docs/ZITADEL_DEPLOYMENT_NOTES.md) - Zitadel troubleshooting & findings
 
 ## Important Patterns
 

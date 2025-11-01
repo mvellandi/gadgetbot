@@ -8,7 +8,7 @@ This guide uses a **minimal Docker Compose file** to deploy Zitadel on Coolify. 
 
 1. ✅ PostgreSQL 17 database already deployed in Coolify (named `zitadel-db`)
 2. ✅ DNS configured: `gadgetbot-auth.vellandi.net` → Coolify server IP
-3. ✅ Git repository with `docker-compose.zitadel-minimal.yml` committed
+3. ✅ Git repository with `docker-compose.zitadel-prod.yml` committed
 
 ## Step-by-Step Deployment
 
@@ -50,10 +50,10 @@ Save this value - you'll need it for the `ZITADEL_MASTERKEY` variable.
 
 ### 3. Commit Docker Compose File to Git
 
-The file `docker-compose.zitadel-minimal.yml` must be in your Git repository:
+The file `docker-compose.zitadel-prod.yml` must be in your Git repository:
 
 ```bash
-git add docker-compose.zitadel-minimal.yml
+git add docker-compose.zitadel-prod.yml
 git commit -m "Add minimal Zitadel compose file for Coolify"
 git push
 ```
@@ -67,7 +67,7 @@ git push
    - **Name**: `zitadel`
    - **Repository**: Your Git repository URL
    - **Branch**: `main` (or your branch)
-   - **Docker Compose File Location**: `docker-compose.zitadel-minimal.yml`
+   - **Docker Compose File Location**: `docker-compose.zitadel-prod.yml`
    - **Domain**: `https://gadgetbot-auth.vellandi.net`
 
 ### 5. Configure Environment Variables
@@ -211,7 +211,7 @@ After successful deployment:
 
 ## Reference Files
 
-- **Docker Compose**: `docker-compose.zitadel-minimal.yml`
+- **Docker Compose**: `docker-compose.zitadel-prod.yml`
 - **Environment Template**: `.env.zitadel.example`
 - **Migration Guide**: `docs/ZITADEL_MIGRATION.md`
 - **Deployment Summary**: `docs/DEPLOYMENT_SUMMARY.md`

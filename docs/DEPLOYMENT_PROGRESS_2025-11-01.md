@@ -50,7 +50,7 @@
 - [x] Selected "localhost" server (Coolify managing itself)
 - [x] Created new project for GadgetBot resources
 
-### 7. PostgreSQL Database
+### 7. PostgreSQL Database (GadgetBot)
 - [x] Created database resource in Coolify: `gadgetbot-db`
 - [x] Used PostgreSQL version 17
 - [x] Database name: `gadgetbot`
@@ -58,119 +58,56 @@
 - [x] Database running and healthy
 - [x] Saved connection string for GadgetBot app deployment
 
+### 8. PostgreSQL Database (Zitadel)
+- [x] Created database resource in Coolify: `zitadel-db`
+- [x] Used PostgreSQL version 17
+- [x] Database name: `zitadel`
+- [x] Created `zitadel_user` with password
+- [x] Granted privileges to zitadel_user
+- [x] Database running and healthy
+
+### 9. Zitadel Service (✅ COMPLETE)
+- [x] Deployed via Docker Compose (minimal approach)
+- [x] Configured environment variables (including LOGINV2_REQUIRED=false)
+- [x] Domain: `gadgetbot-auth.vellandi.net`
+- [x] Successfully initialized with first admin user
+- [x] Accessible at https://gadgetbot-auth.vellandi.net/ui/console
+- [x] Admin login: `admin@gadgetbot.gadgetbot-auth.vellandi.net`
+
+**Key Learnings:**
+- ✅ Used `docker-compose.zitadel-prod.yml` (minimal single-service approach)
+- ✅ Disabled Login V2 with `ZITADEL_DEFAULTINSTANCE_FEATURES_LOGINV2_REQUIRED=false`
+- ✅ Required database reset to apply Login V2 setting
+- ✅ Username format: `{username}@{org_name}.{external_domain}`
+- ✅ Network: Both containers on `coolify` network
+- ✅ Database host: Used container ID, not friendly name
+
 ---
 
 ## 🚧 Next Steps
 
-### 8. Zitadel Service
-1. In Coolify: **New Resource → Database → PostgreSQL**
-2. Settings:
-   - Name: `gadgetbot-db`
-   - Version: `17` (latest)
-   - Database name: `gadgetbot`
-   - Username: `gadgetbot`
-   - Password: (auto-generated - save it!)
-   - Port: `5432` (internal)
-3. Deploy and wait for health check
-4. **Save connection string** for later use
+### 10. Zitadel Configuration Migration
+Using the existing `zitadel-export.json` from local development to create projects and OAuth apps in production.
 
-### 8. Zitadel Service
-1. In Coolify: **New Resource → Service → Docker Compose**
-2. Configuration:
-   - Name: `zitadel`
-   - Domain: `gadgetbot-auth.vellandi.net`
-3. Docker Compose configuration (see below)
-4. Environment variables (see below)
-5. Deploy and wait for health check
+**Prerequisites:**
+- [ ] Create service user in Zitadel Console (username: `zitadel-migration`)
+- [ ] Assign "Organization Owner Manager" role to service user
+- [ ] Generate Personal Access Token (PAT)
+- [ ] Save token securely
 
-#### Zitadel Docker Compose
+**Steps:**
+1. Review `zitadel-export.json` - contains projects and OAuth app config from local dev
+2. Update redirect URIs in export file to production domain:
+   - From: `http://localhost:3000/api/auth/callback/zitadel`
+   - To: `https://gadgetbot.vellandi.net/api/auth/callback/zitadel`
+3. Set environment variable: `export ZITADEL_SERVICE_TOKEN=<your-pat>`
+4. Run import script: `npm run zitadel:import`
+5. Get new client ID from Zitadel Console
+6. Update GadgetBot environment variables with new credentials
 
-```yaml
-services:
-  zitadel:
-    restart: always
-    image: ghcr.io/zitadel/zitadel:latest
-    command: 'start-from-init --masterkeyFromEnv --tlsMode external'
-    environment:
-      - ZITADEL_DATABASE_POSTGRES_HOST=${ZITADEL_DATABASE_POSTGRES_HOST}
-      - ZITADEL_DATABASE_POSTGRES_PORT=5432
-      - ZITADEL_DATABASE_POSTGRES_DATABASE=${ZITADEL_DATABASE_POSTGRES_DATABASE}
-      - ZITADEL_DATABASE_POSTGRES_USER_USERNAME=${ZITADEL_DATABASE_POSTGRES_USER_USERNAME}
-      - ZITADEL_DATABASE_POSTGRES_USER_PASSWORD=${ZITADEL_DATABASE_POSTGRES_USER_PASSWORD}
-      - ZITADEL_DATABASE_POSTGRES_USER_SSL_MODE=disable
-      - ZITADEL_DATABASE_POSTGRES_ADMIN_USERNAME=${ZITADEL_DATABASE_POSTGRES_ADMIN_USERNAME}
-      - ZITADEL_DATABASE_POSTGRES_ADMIN_PASSWORD=${ZITADEL_DATABASE_POSTGRES_ADMIN_PASSWORD}
-      - ZITADEL_DATABASE_POSTGRES_ADMIN_SSL_MODE=disable
-      - ZITADEL_EXTERNALDOMAIN=${ZITADEL_EXTERNALDOMAIN}
-      - ZITADEL_EXTERNALPORT=443
-      - ZITADEL_EXTERNALSECURE=true
-      - ZITADEL_TLS_ENABLED=false
-      - ZITADEL_MASTERKEY=${ZITADEL_MASTERKEY}
-      - ZITADEL_FIRSTINSTANCE_ORG_NAME=GadgetBot
-      - ZITADEL_FIRSTINSTANCE_ORG_HUMAN_USERNAME=admin
-      - ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORD=${ZITADEL_ADMIN_PASSWORD}
-    ports:
-      - '8080:8080'
-    depends_on:
-      zitadel-db:
-        condition: service_healthy
-    networks:
-      - zitadel
+**Reference:** See [ZITADEL_MIGRATION.md](./ZITADEL_MIGRATION.md) for detailed instructions
 
-  zitadel-db:
-    restart: always
-    image: postgres:16-alpine
-    environment:
-      - POSTGRES_USER=${ZITADEL_DATABASE_POSTGRES_ADMIN_USERNAME}
-      - POSTGRES_PASSWORD=${ZITADEL_DATABASE_POSTGRES_ADMIN_PASSWORD}
-      - POSTGRES_DB=${ZITADEL_DATABASE_POSTGRES_DATABASE}
-    networks:
-      - zitadel
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
-      interval: 5s
-      timeout: 60s
-      retries: 10
-      start_period: 5s
-    volumes:
-      - zitadel-data:/var/lib/postgresql/data
-
-networks:
-  zitadel:
-
-volumes:
-  zitadel-data:
-```
-
-#### Zitadel Environment Variables
-
-```bash
-# External domain (no protocol, no trailing slash)
-ZITADEL_EXTERNALDOMAIN=gadgetbot-auth.vellandi.net
-
-# Database configuration (separate Zitadel database)
-ZITADEL_DATABASE_POSTGRES_HOST=zitadel-db
-ZITADEL_DATABASE_POSTGRES_DATABASE=zitadel
-ZITADEL_DATABASE_POSTGRES_USER_USERNAME=zitadel_user
-ZITADEL_DATABASE_POSTGRES_USER_PASSWORD=<generate-strong-password>
-ZITADEL_DATABASE_POSTGRES_ADMIN_USERNAME=zitadel_admin
-ZITADEL_DATABASE_POSTGRES_ADMIN_PASSWORD=<generate-strong-password>
-
-# Zitadel master key (32+ characters, keep secret!)
-ZITADEL_MASTERKEY=<generate-32-char-secret>
-
-# Zitadel admin password
-ZITADEL_ADMIN_PASSWORD=<generate-strong-password>
-```
-
-**Password Generation:**
-```bash
-# On your local machine or server
-openssl rand -base64 32  # For ZITADEL_MASTERKEY
-openssl rand -base64 16  # For passwords
-```
-
-### 9. GadgetBot Application
+### 11. GadgetBot Application
 1. In Coolify: **New Resource → Application → GitHub**
 2. Connect GitHub account/organization
 3. Select repository: `tanstack/gadgetbot` (or your fork)
