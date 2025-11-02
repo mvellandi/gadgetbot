@@ -38,7 +38,11 @@ interface Project {
 interface Application {
   id: string
   name: string
-  projectId: string
+  projectId?: string
+  details?: {
+    resourceOwner?: string
+    [key: string]: unknown
+  }
   [key: string]: unknown
 }
 
@@ -128,16 +132,46 @@ async function importZitadelConfig(): Promise<void> {
     console.log('\n📦 Importing projects...')
     for (const project of config.projects) {
       const { id, ...projectData } = project
-      const result = await makeZitadelRequest(
-        '/management/v1/projects',
-        token,
-        'POST',
-        projectData
-      ) as { id?: string }
+      try {
+        const result = await makeZitadelRequest(
+          '/management/v1/projects',
+          token,
+          'POST',
+          projectData
+        ) as { id?: string }
 
-      const newProjectId = result.id || id
-      projectIdMap.set(id, newProjectId)
-      console.log(`  ✓ Created project: ${project.name} (${newProjectId})`)
+        const newProjectId = result.id || id
+        projectIdMap.set(id, newProjectId)
+        console.log(`  ✓ Created project: ${project.name} (${newProjectId})`)
+      } catch (error) {
+        // Skip if project already exists (409) - fetch existing project ID
+        if (error instanceof Error && error.message.includes('409')) {
+          console.log(`  ⊙ Skipped existing project: ${project.name}`)
+          // Fetch the existing project to get its ID
+          try {
+            const existingProjects = await makeZitadelRequest(
+              '/management/v1/projects/_search',
+              token,
+              'POST',
+              { queries: [{ nameQuery: { name: project.name, method: 'TEXT_QUERY_METHOD_EQUALS' } }] }
+            ) as { result?: Array<{ id: string }> }
+
+            const existingId = existingProjects.result?.[0]?.id
+            if (existingId) {
+              projectIdMap.set(id, existingId)
+              console.log(`    Found existing project ID: ${existingId}`)
+            } else {
+              // Fallback to original ID if we can't find it
+              projectIdMap.set(id, id)
+            }
+          } catch (searchError) {
+            // If search fails, use original ID
+            projectIdMap.set(id, id)
+          }
+        } else {
+          throw error
+        }
+      }
     }
 
     // Import roles
@@ -159,17 +193,50 @@ async function importZitadelConfig(): Promise<void> {
     // Import applications
     console.log('\n🔧 Importing applications...')
     for (const app of config.applications) {
-      const oldProjectId = app.projectId
-      const newProjectId = projectIdMap.get(oldProjectId) || oldProjectId
+      // Infer project from clientId suffix (e.g., "xxxxx@gadgetbot" or "xxxxx@zitadel")
+      let projectName: string | undefined
+      const clientId = (app.oidcConfig as any)?.clientId || (app.apiConfig as any)?.clientId
+      if (clientId && typeof clientId === 'string') {
+        const match = clientId.match(/@(.+)$/)
+        if (match) {
+          projectName = match[1].toLowerCase()
+        }
+      }
 
-      const { id, projectId, ...appData } = app
-      await makeZitadelRequest(
-        `/management/v1/projects/${newProjectId}/apps/oidc`,
-        token,
-        'POST',
-        appData
-      )
-      console.log(`  ✓ Created application: ${app.name} in project ${newProjectId}`)
+      // Find the matching project in our map
+      let newProjectId: string | undefined
+      if (projectName) {
+        // Find project by name (case insensitive)
+        const matchingProject = config.projects.find(p =>
+          p.name.toLowerCase() === projectName
+        )
+        if (matchingProject) {
+          newProjectId = projectIdMap.get(matchingProject.id)
+        }
+      }
+
+      if (!newProjectId) {
+        console.log(`  ⚠ Skipping application ${app.name}: could not determine project (clientId: ${clientId})`)
+        continue
+      }
+
+      const { id, projectId, details, ...appData } = app
+      try {
+        await makeZitadelRequest(
+          `/management/v1/projects/${newProjectId}/apps/oidc`,
+          token,
+          'POST',
+          appData
+        )
+        console.log(`  ✓ Created application: ${app.name} in project ${newProjectId}`)
+      } catch (error) {
+        // Skip if application already exists (409)
+        if (error instanceof Error && error.message.includes('409')) {
+          console.log(`  ⊙ Skipped existing application: ${app.name}`)
+        } else {
+          throw error
+        }
+      }
     }
 
     // Import grants

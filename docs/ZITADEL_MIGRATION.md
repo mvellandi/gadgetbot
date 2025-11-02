@@ -341,6 +341,27 @@ export ZITADEL_SERVICE_TOKEN=<your-token>
 3. Go to **Authorizations** tab
 4. Ensure **Organization Owner Manager** role is assigned
 
+### "Errors.Token.Invalid (AUTH-7fs1e)" - PAT Authentication Failed
+
+**Common Causes:**
+1. **Wrong Zitadel instance**: Make sure you're logged into the correct Zitadel console when generating the PAT
+   - Development: `http://localhost:8080/ui/console`
+   - Production: `https://auth.yourdomain.com/ui/console`
+2. **Token not exported**: The environment variable must be `export`ed, not just set
+3. **Token copied incorrectly**: Use the copy button in Zitadel Console, don't manually select the text
+
+**Solution:**
+```bash
+# Verify you're targeting the right instance
+echo $ZITADEL_ISSUER_URL  # Should match where you created the service user
+
+# Test the token with a simple API call
+curl -H "Authorization: Bearer ${ZITADEL_SERVICE_TOKEN}" \
+  ${ZITADEL_ISSUER_URL:-http://localhost:8080}/management/v1/orgs/me
+
+# If that works, the token is valid
+```
+
 ### Import Creates Duplicates
 
 **Prevention:**
@@ -353,6 +374,12 @@ export ZITADEL_SERVICE_TOKEN=<your-token>
 npm run zitadel:reset
 npm run zitadel:import
 ```
+
+**Note on Official 3-Container Setup:**
+If using the official 3-container Zitadel setup (with Login V2), the import script now automatically:
+- Skips existing projects (e.g., the default "ZITADEL" project)
+- Fetches existing project IDs for proper application mapping
+- Infers project associations from application `clientId` suffixes (e.g., `@gadgetbot` or `@zitadel`)
 
 ### Different Project IDs After Import
 
