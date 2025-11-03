@@ -56,6 +56,7 @@ export const auth = betterAuth({
 			maxAge: 5 * 60, // 5 minutes
 		},
 	},
+	trustedOrigins: [env.BETTER_AUTH_URL],
 	advanced: {
 		// Use secure cookies in production (HTTPS)
 		useSecureCookies: env.BETTER_AUTH_URL.startsWith("https"),

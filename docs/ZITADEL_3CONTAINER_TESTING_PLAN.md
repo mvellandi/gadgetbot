@@ -22,7 +22,7 @@
 
 3. **First Instance Configuration**
    - Organization: GadgetBot
-   - Admin user: `admin@GadgetBot.localhost` / `Admin123!`
+   - Admin user: `admin@gadgetbot.localhost` / `Admin123!`
    - Login V2 enabled and tested
 
 4. **Import Script Fixed**
