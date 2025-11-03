@@ -62,13 +62,15 @@ An application settings page will open
 1. **Authentication Method**: Select **PKCE** (recommended for security)
 2. **Redirect URIs**: Add the following URLs with development mode enabled:
    ```
-   http://localhost:3000/api/auth/callback/zitadel
+   http://localhost:3001/api/auth/callback/zitadel
    ```
 3. **Post Logout URIs**: Add:
    ```
-   http://localhost:3000
+   http://localhost:3001
    ```
 4. Click **Continue**
+
+> **Note**: We use port 3001 for the GadgetBot dev server because the Zitadel Login V2 UI container already uses port 3000.
 
 You'll be taken to the application overview page with details that will later need to be further customized.
 
@@ -100,7 +102,7 @@ ZITADEL_CLIENT_ID=your-client-id-here@gadgetbot
 
 # Better Auth
 BETTER_AUTH_SECRET=changeme-generate-a-random-32-character-secret
-BETTER_AUTH_URL=http://localhost:3000
+BETTER_AUTH_URL=http://localhost:3001
 ```
 
 > **Important Notes:**
@@ -166,18 +168,20 @@ Ensure roles are included in the ID token and userinfo endpoint for Better Auth 
 Now you're ready to start the GadgetBot application:
 
 ```bash
-# Start the dev server
-npm run dev
+# Start the dev server on port 3001
+npm run dev -- --port 3001
 ```
 
-The application will be available at: **http://localhost:3000**
+The application will be available at: **http://localhost:3001**
+
+> **Port Note**: We use port 3001 because the Zitadel 3-container setup includes a Login V2 UI that runs on port 3000.
 
 ## Step 7: Test Authentication
 
-1. Navigate to: **http://localhost:3000/login**
+1. Navigate to: **http://localhost:3001/login**
 2. Click **Sign in with Zitadel**
-3. You'll be redirected to Zitadel's login page
-4. Sign in with your credentials (admin@gadgetbot.localhost / Admin123!)
+3. You'll be redirected to Zitadel's login page (Login V2 UI at port 3000)
+4. Sign in with your credentials (admin@gadgetbot.localhost / Gadgetbot123!)
 5. Grant permission when prompted
 6. You'll be redirected back to `/admin/products`
 
@@ -215,7 +219,7 @@ Alternatively, you can register a new user:
 
 **Solution**: Ensure the redirect URI in Zitadel exactly matches:
 ```
-http://localhost:3000/api/auth/callback/zitadel
+http://localhost:3001/api/auth/callback/zitadel
 ```
 
 ### Issue: "Invalid client" Error
@@ -247,7 +251,7 @@ Look for: `server is listening on [::]:8080`
 1. **Missing BETTER_AUTH_URL environment variable**
    ```bash
    # Ensure this is set in .env
-   BETTER_AUTH_URL=http://localhost:3000
+   BETTER_AUTH_URL=http://localhost:3001
    ```
 
 2. **Client-side auth client has undefined baseURL**
@@ -258,7 +262,7 @@ Look for: `server is listening on [::]:8080`
      export const authClient = createAuthClient({
        baseURL: typeof window !== "undefined"
          ? window.location.origin
-         : process.env.BETTER_AUTH_URL || "http://localhost:3000",
+         : process.env.BETTER_AUTH_URL || "http://localhost:3001",
      })
      ```
 
@@ -294,7 +298,7 @@ npm run dev
                     ▼
 ┌───────────────────────────────────────────────────────┐
 │              GadgetBot Application                     │
-│            (http://localhost:3000)                     │
+│            (http://localhost:3001)                     │
 │                                                        │
 │  Better Auth Client                                    │
 │  - Initiates OAuth flow                                │
