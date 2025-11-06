@@ -1,0 +1,129 @@
+services:
+  zitadel:
+    container_name: gadgetbot-zitadel-prod
+    restart: unless-stopped
+    image: ghcr.io/zitadel/zitadel:latest
+    command: start-from-init --masterkey "${ZITADEL_MASTERKEY}"
+    environment:
+      # External domain configuration
+      ZITADEL_EXTERNALDOMAIN: auth.gadgetbot.app
+      ZITADEL_EXTERNALSECURE: true
+      ZITADEL_TLS_ENABLED: false  # Traefik handles TLS
+
+      # Database connection settings
+      ZITADEL_DATABASE_POSTGRES_HOST: db
+      ZITADEL_DATABASE_POSTGRES_PORT: 5432
+      ZITADEL_DATABASE_POSTGRES_DATABASE: zitadel
+      # Admin user (must exist in database)
+      ZITADEL_DATABASE_POSTGRES_ADMIN_USERNAME: postgres
+      ZITADEL_DATABASE_POSTGRES_ADMIN_PASSWORD: ${POSTGRES_PASSWORD}
+      ZITADEL_DATABASE_POSTGRES_ADMIN_SSL_MODE: disable
+      # Zitadel user (created by init if doesn't exist)
+      ZITADEL_DATABASE_POSTGRES_USER_USERNAME: zitadel
+      ZITADEL_DATABASE_POSTGRES_USER_PASSWORD: ${ZITADEL_DB_PASSWORD}
+      ZITADEL_DATABASE_POSTGRES_USER_SSL_MODE: disable
+
+      # Login client configuration (for Login V2)
+      ZITADEL_FIRSTINSTANCE_LOGINCLIENTPATPATH: /zitadel-data/login-client.pat
+      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORDCHANGEREQUIRED: false
+      ZITADEL_FIRSTINSTANCE_ORG_LOGINCLIENT_MACHINE_USERNAME: login-client
+      ZITADEL_FIRSTINSTANCE_ORG_LOGINCLIENT_MACHINE_NAME: GadgetBot Login Client
+      ZITADEL_FIRSTINSTANCE_ORG_LOGINCLIENT_PAT_EXPIRATIONDATE: '2029-01-01T00:00:00Z'
+
+      # Login V2 configuration
+      ZITADEL_DEFAULTINSTANCE_FEATURES_LOGINV2_REQUIRED: true
+      ZITADEL_DEFAULTINSTANCE_FEATURES_LOGINV2_BASEURI: https://auth.gadgetbot.app/ui/v2/login
+      ZITADEL_OIDC_DEFAULTLOGINURLV2: https://auth.gadgetbot.app/ui/v2/login/login?authRequest=
+      ZITADEL_OIDC_DEFAULTLOGOUTURLV2: https://auth.gadgetbot.app/ui/v2/login/logout?post_logout_redirect=
+      ZITADEL_SAML_DEFAULTLOGINURLV2: https://auth.gadgetbot.app/ui/v2/login/login?samlRequest=
+
+      # First instance configuration (GadgetBot admin)
+      ZITADEL_FIRSTINSTANCE_ORG_NAME: GadgetBot
+      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_USERNAME: ${ZITADEL_ADMIN_USERNAME}
+      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORD: ${ZITADEL_ADMIN_PASSWORD}
+      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_FIRSTNAME: Admin
+      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_LASTNAME: User
+      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_EMAIL: ${ZITADEL_ADMIN_EMAIL}
+      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_EMAIL_VERIFIED: "true"
+
+      # Logging
+      ZITADEL_LOG_LEVEL: info
+
+    healthcheck:
+      test:
+        - CMD
+        - /app/zitadel
+        - ready
+      interval: 10s
+      timeout: 60s
+      retries: 5
+      start_period: 10s
+    user: "0"
+    volumes:
+      - zitadel-data:/zitadel-data:rw
+    labels:
+      # Coolify labels for Traefik routing
+      - "coolify.managed=true"
+      - "traefik.enable=true"
+      - "traefik.http.routers.zitadel.rule=Host(`auth.gadgetbot.app`)"
+      - "traefik.http.routers.zitadel.entrypoints=websecure"
+      - "traefik.http.routers.zitadel.tls=true"
+      - "traefik.http.routers.zitadel.tls.certresolver=letsencrypt"
+      - "traefik.http.services.zitadel.loadbalancer.server.port=8080"
+    networks:
+      - zitadel-network
+      - coolify  # Connect to Coolify's network for Traefik
+    depends_on:
+      db:
+        condition: service_healthy
+
+  login:
+    container_name: gadgetbot-zitadel-login-prod
+    restart: unless-stopped
+    image: ghcr.io/zitadel/zitadel-login:latest
+    environment:
+      - ZITADEL_API_URL=http://gadgetbot-zitadel-prod:8080
+      - NEXT_PUBLIC_BASE_PATH=/ui/v2/login
+      - ZITADEL_SERVICE_USER_TOKEN_FILE=/zitadel-data/login-client.pat
+    network_mode: service:zitadel
+    user: "0"
+    volumes:
+      - zitadel-data:/zitadel-data:ro
+    depends_on:
+      zitadel:
+        condition: service_healthy
+        restart: false
+
+  db:
+    container_name: gadgetbot-zitadel-db-prod
+    restart: unless-stopped
+    image: postgres:17-alpine
+    environment:
+      PGUSER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    healthcheck:
+      test:
+      - CMD-SHELL
+      - pg_isready
+      - -d
+      - zitadel
+      - -U
+      - postgres
+      interval: 10s
+      timeout: 30s
+      retries: 5
+      start_period: 20s
+    networks:
+      - zitadel-network
+    volumes:
+      - zitadel-db-data:/var/lib/postgresql/data:rw
+
+networks:
+  zitadel-network:
+    driver: bridge
+  coolify:
+    external: true
+
+volumes:
+  zitadel-data:
+  zitadel-db-data:
