@@ -3,12 +3,18 @@ services:
     container_name: gadgetbot-zitadel-prod
     restart: unless-stopped
     image: ghcr.io/zitadel/zitadel:latest
-    command: start-from-init --masterkey "${ZITADEL_MASTERKEY}"
+    command: start-from-init --masterkey "${ZITADEL_MASTERKEY}" --tlsMode external
+    healthcheck:
+      test: ["CMD", "/app/zitadel", "ready"]
+      interval: 10s
+      timeout: 60s
+      retries: 5
+      start_period: 90s
     environment:
       # External domain configuration
-      ZITADEL_EXTERNALDOMAIN: auth.gadgetbot.app
+      ZITADEL_EXTERNALDOMAIN: gadgetbot-auth.vellandi.net
       ZITADEL_EXTERNALSECURE: true
-      ZITADEL_TLS_ENABLED: false  # Traefik handles TLS
+      ZITADEL_TLS_ENABLED: "false"  # Traefik handles TLS - must be quoted string
 
       # Database connection settings
       ZITADEL_DATABASE_POSTGRES_HOST: db
@@ -23,41 +29,23 @@ services:
       ZITADEL_DATABASE_POSTGRES_USER_PASSWORD: ${ZITADEL_DB_PASSWORD}
       ZITADEL_DATABASE_POSTGRES_USER_SSL_MODE: disable
 
-      # Login client configuration (for Login V2)
+      # First instance setup - creates login client and admin user
       ZITADEL_FIRSTINSTANCE_LOGINCLIENTPATPATH: /zitadel-data/login-client.pat
       ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORDCHANGEREQUIRED: false
       ZITADEL_FIRSTINSTANCE_ORG_LOGINCLIENT_MACHINE_USERNAME: login-client
-      ZITADEL_FIRSTINSTANCE_ORG_LOGINCLIENT_MACHINE_NAME: GadgetBot Login Client
+      ZITADEL_FIRSTINSTANCE_ORG_LOGINCLIENT_MACHINE_NAME: Automatically Initialized IAM_LOGIN_CLIENT
       ZITADEL_FIRSTINSTANCE_ORG_LOGINCLIENT_PAT_EXPIRATIONDATE: '2029-01-01T00:00:00Z'
 
-      # Login V2 configuration
+      # Login V2 configuration (uses external domain for browser redirects)
       ZITADEL_DEFAULTINSTANCE_FEATURES_LOGINV2_REQUIRED: true
-      ZITADEL_DEFAULTINSTANCE_FEATURES_LOGINV2_BASEURI: https://auth.gadgetbot.app/ui/v2/login
-      ZITADEL_OIDC_DEFAULTLOGINURLV2: https://auth.gadgetbot.app/ui/v2/login/login?authRequest=
-      ZITADEL_OIDC_DEFAULTLOGOUTURLV2: https://auth.gadgetbot.app/ui/v2/login/logout?post_logout_redirect=
-      ZITADEL_SAML_DEFAULTLOGINURLV2: https://auth.gadgetbot.app/ui/v2/login/login?samlRequest=
-
-      # First instance configuration (GadgetBot admin)
-      ZITADEL_FIRSTINSTANCE_ORG_NAME: GadgetBot
-      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_USERNAME: ${ZITADEL_ADMIN_USERNAME}
-      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORD: ${ZITADEL_ADMIN_PASSWORD}
-      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_FIRSTNAME: Admin
-      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_LASTNAME: User
-      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_EMAIL: ${ZITADEL_ADMIN_EMAIL}
-      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_EMAIL_VERIFIED: "true"
+      ZITADEL_DEFAULTINSTANCE_FEATURES_LOGINV2_BASEURI: https://gadgetbot-auth.vellandi.net/ui/v2/login
+      ZITADEL_OIDC_DEFAULTLOGINURLV2: https://gadgetbot-auth.vellandi.net/ui/v2/login/login?authRequest=
+      ZITADEL_OIDC_DEFAULTLOGOUTURLV2: https://gadgetbot-auth.vellandi.net/ui/v2/login/logout?post_logout_redirect=
+      ZITADEL_SAML_DEFAULTLOGINURLV2: https://gadgetbot-auth.vellandi.net/ui/v2/login/login?samlRequest=
 
       # Logging
       ZITADEL_LOG_LEVEL: info
 
-    healthcheck:
-      test:
-        - CMD
-        - /app/zitadel
-        - ready
-      interval: 10s
-      timeout: 60s
-      retries: 5
-      start_period: 10s
     user: "0"
     volumes:
       - zitadel-data:/zitadel-data:rw
@@ -65,8 +53,8 @@ services:
       # Coolify labels for Traefik routing
       - "coolify.managed=true"
       - "traefik.enable=true"
-      - "traefik.http.routers.zitadel.rule=Host(`auth.gadgetbot.app`)"
-      - "traefik.http.routers.zitadel.entrypoints=websecure"
+      - "traefik.http.routers.zitadel.rule=Host(`gadgetbot-auth.vellandi.net`)"
+      - "traefik.http.routers.zitadel.entrypoints=https"
       - "traefik.http.routers.zitadel.tls=true"
       - "traefik.http.routers.zitadel.tls.certresolver=letsencrypt"
       - "traefik.http.services.zitadel.loadbalancer.server.port=8080"
@@ -82,17 +70,28 @@ services:
     restart: unless-stopped
     image: ghcr.io/zitadel/zitadel-login:latest
     environment:
-      - ZITADEL_API_URL=http://gadgetbot-zitadel-prod:8080
+      - ZITADEL_API_URL=http://zitadel:8080
       - NEXT_PUBLIC_BASE_PATH=/ui/v2/login
       - ZITADEL_SERVICE_USER_TOKEN_FILE=/zitadel-data/login-client.pat
-    network_mode: service:zitadel
+      - CUSTOM_REQUEST_HEADERS=Host:gadgetbot-auth.vellandi.net
     user: "0"
     volumes:
       - zitadel-data:/zitadel-data:ro
+    labels:
+      - "coolify.managed=true"
+      - "traefik.enable=true"
+      - "traefik.http.routers.zitadel-login.rule=Host(`gadgetbot-auth.vellandi.net`) && PathPrefix(`/ui/v2/login`)"
+      - "traefik.http.routers.zitadel-login.entrypoints=https"
+      - "traefik.http.routers.zitadel-login.tls=true"
+      - "traefik.http.routers.zitadel-login.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.zitadel-login.priority=100"
+      - "traefik.http.services.zitadel-login.loadbalancer.server.port=3000"
+    networks:
+      - zitadel-network
+      - coolify
     depends_on:
       zitadel:
         condition: service_healthy
-        restart: false
 
   db:
     container_name: gadgetbot-zitadel-db-prod

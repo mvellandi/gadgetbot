@@ -9,8 +9,6 @@
 
 Zitadel uses a **multi-layered identity system** where usernames, emails, and login identifiers are stored in separate tables. Understanding this architecture is crucial for properly configuring first-instance users and managing user identities.
 
-**Key Finding**: The old username `admin@gadgetbot.gadgetbot-auth.vellandi.net` likely still works due to Zitadel's login name resolution algorithm, which accepts multiple formats based on organization domain suffixes.
-
 ---
 
 ## Core Identity Components

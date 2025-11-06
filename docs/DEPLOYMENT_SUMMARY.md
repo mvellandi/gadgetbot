@@ -52,8 +52,8 @@ Internet
 
 ```
 gadgetbot/
-├── docker-compose.zitadel-prod.yml  # Zitadel Docker Compose for Coolify
-├── docker-compose.zitadel.yml       # Zitadel for local development (older version with login v1)
+├── docker-compose.zitadel.prod.yml  # Not yet created
+├── docker-compose.zitadel.local.yml # Zitadel for local development
 ├── .env.zitadel.example             # Zitadel environment template
 ├── zitadel-export.json              # OAuth configuration export
 ├── scripts/
