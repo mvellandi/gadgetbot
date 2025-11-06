@@ -167,7 +167,7 @@ Coolify Resources (4 total):
 
 #### 1.1 Prepare Docker Compose File
 
-Create `docker-compose.zitadel.production.yml` based on [docker-compose.zitadel-test.yml](../docker-compose.zitadel-test.yml):
+Create `docker-compose.zitadel.production.yml` based on [docker-compose.zitadel.local.yml](../docker-compose.zitadel.local.yml):
 
 **Key changes for production:**
 - Set `ZITADEL_EXTERNALDOMAIN=gadgetbot-auth.vellandi.net`
@@ -627,7 +627,7 @@ docker exec <zitadel-db-container> pg_dump -U postgres zitadel > zitadel_backup_
 - [DEPLOYMENT_COOLIFY.md](./DEPLOYMENT_COOLIFY.md) - Comprehensive Coolify guide
 - [AUTH_SETUP.md](./AUTH_SETUP.md) - Authentication setup guide
 - [CLAUDE.md](../CLAUDE.md) - Project architecture
-- [docker-compose.zitadel-test.yml](../docker-compose.zitadel-test.yml) - Local Zitadel config (reference for production)
+- [docker-compose.zitadel.local.yml](../docker-compose.zitadel.local.yml) - Local Zitadel config (reference for production)
 
 ---
 

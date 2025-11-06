@@ -12,7 +12,7 @@
 1. **Official Setup Downloaded**
    - Downloaded official docker-compose.yaml from Zitadel docs
    - Created `docker-compose.zitadel-official.yml` (unmodified reference)
-   - Created `docker-compose.zitadel-test.yml` (customized for GadgetBot)
+   - Created `docker-compose.zitadel.local.yml` (customized for GadgetBot)
 
 2. **3-Container Architecture Working**
    - ✅ Zitadel API container (port 8080)
@@ -33,171 +33,18 @@
 
 ### 🔄 Current Status
 
-**Local Environment:**
-- 3-container Zitadel setup running
-- Configuration imported successfully
-- Ready for OAuth integration testing
-
----
-
-## Local Testing Plan
-
-### Phase 1: OAuth Integration ⏳ NEXT
-
-**Goal:** Verify GadgetBot app can authenticate with 3-container Zitadel
-
-**Prerequisites:**
-- [x] Zitadel running (`docker ps` shows 3 healthy containers)
-- [x] GadgetBot project and application imported
-- [ ] Get new Client ID from Console
-
-**Steps:**
-
-1. **Get Client ID from Zitadel Console**
-   ```bash
-   # Open browser
-   open http://localhost:8080/ui/console
-
-   # Login as: admin@GadgetBot.localhost / Admin123!
-   # Navigate to: Projects → GadgetBot → Applications → GadgetBot Web
-   # Copy the Client ID (format: xxxxx@gadgetbot)
-   ```
-
-2. **Update .env with New Client ID**
-   ```bash
-   # In .env file
-   ZITADEL_CLIENT_ID=<new-client-id>@gadgetbot
-   ZITADEL_ISSUER_URL=http://localhost:8080
-   ```
-
-3. **Start GadgetBot Application**
-   ```bash
-   npm run dev
-   ```
-
-4. **Test Login Flow**
-   - Navigate to http://localhost:3000
-   - Click "Sign In"
-   - **Expected**: Redirect to Login V2 at http://localhost:3000/ui/v2/login
-   - Login with test user
-   - **Expected**: Redirect back to app, authenticated
-
-5. **Verify Session**
-   - Check user info displays correctly
-   - Test protected routes
-   - Test sign out
-
-**Success Criteria:**
-- ✅ Redirect to Login V2 UI (modern interface)
-- ✅ Authentication successful
-- ✅ User session persists
-- ✅ Sign out works correctly
-
----
-
-### Phase 2: Login V2 Features Testing
-
-**Goal:** Verify Login V2 provides enhanced features vs Login V1
-
-**Features to Test:**
-
-1. **Modern UI**
-   - Clean, updated design
-   - Responsive layout
-   - Dark mode support (if configured)
-
-2. **Enhanced Security**
-   - PKCE flow working
-   - Session management
-   - Proper token handling
-
-3. **User Experience**
-   - Password reset flow
-   - Account selection (if multiple accounts)
-   - Error messaging
-
-**Success Criteria:**
-- ✅ Login V2 UI loads correctly
-- ✅ All auth flows work smoothly
-- ✅ No console errors
-
----
-
-### Phase 3: Export/Import Roundtrip Test
-
-**Goal:** Verify export/import maintains configuration integrity
-
-**Steps:**
-
-1. **Make Changes in Console**
-   - Add a new role to GadgetBot project
-   - Update redirect URIs
-   - Add a new application
-
-2. **Export Configuration**
-   ```bash
-   export ZITADEL_SERVICE_TOKEN=<token>
-   npm run zitadel:export -- --output=test-export.json
-   ```
-
-3. **Reset Zitadel**
-   ```bash
-   npm run zitadel:down -v
-   npm run zitadel:up
-   ```
-
-4. **Import Configuration**
-   ```bash
-   npm run zitadel:import -- --input=test-export.json
-   ```
-
-5. **Verify in Console**
-   - All projects present
-   - All applications present
-   - Roles and grants preserved
-
-**Success Criteria:**
-- ✅ Export captures all changes
-- ✅ Import recreates configuration accurately
-- ✅ App continues to work after import
+- Proceed with Production Testing plan
 
 ---
 
 ## Production Testing Plan
 
-### Phase 1: Evaluate 3-Container vs Single-Container for Production
-
-**Decision Factors:**
-
-| Aspect | Single-Container | 3-Container |
-|--------|-----------------|-------------|
-| **Complexity** | ✅ Simple | ⚠️ More complex |
-| **Login V2** | ❌ Not supported | ✅ Supported |
-| **Resource Usage** | ✅ Lower | ⚠️ Higher |
-| **Maintenance** | ✅ Easier | ⚠️ Harder |
-| **Features** | ⚠️ Login V1 only | ✅ Full feature set |
-| **Coolify Support** | ✅ Easy | ⚠️ Requires Docker Image deployment |
-
-**Questions to Answer:**
-1. Do we need Login V2 features for production?
-2. Is the added complexity worth it?
-3. Can we handle 3 containers in Coolify?
-
-**Testing Approach:**
-- Test both setups locally first
-- Compare user experience
-- Evaluate maintenance burden
-- Make informed decision
-
----
-
-### Phase 2: Coolify Deployment (If Going with 3-Container)
+### Phase 1: Coolify Deployment
 
 **Preparation:**
 
 1. **Update docker-compose.zitadel-prod.yml**
-   - Base it on `docker-compose.zitadel-test.yml`
-   - Add login-ui service
+   - Base it on `docker-compose.zitadel.local.yml`
    - Configure for external domain
    - Update environment variables for production
 
@@ -264,9 +111,7 @@ If 3-container setup proves too complex for production:
 
 **Compose Files:**
 - `docker-compose.zitadel-official.yml` - Unmodified official example (reference)
-- `docker-compose.zitadel-test.yml` - Local 3-container setup (GadgetBot customized)
-- `docker-compose.zitadel.yml` - Current single-container local (baseline)
-- `docker-compose.zitadel-prod.yml` - Current production config (single-container)
+- `docker-compose.zitadel.local.yml` - Local 3-container setup (GadgetBot customized, currently used)
 
 **Scripts:**
 - `scripts/zitadel-import.ts` - Enhanced import with 3-container support

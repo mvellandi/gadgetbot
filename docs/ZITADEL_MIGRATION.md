@@ -181,6 +181,12 @@ npm run zitadel:export -- --output=./backups/zitadel-dev-2025-01-15.json
 
 ## Import Configuration
 
+### Setup Import Service User
+
+- Username: `import-service`
+- Generate new PAT (personal access token)
+- Set new token: `export ZITADEL_SERVICE_TOKEN=<pat-token>`
+
 ### Test Import (Dry Run)
 
 Always test first to see what would be created:
@@ -193,6 +199,17 @@ npm run zitadel:import -- --dry-run
 
 ```bash
 npm run zitadel:import
+
+# Watch for success message
+# Should show: Projects created, Applications created, Roles created
+```
+
+**Expected Output**:
+```
+✓ Project: GadgetBot (existing, using ID: xxx)
+✓ Application: GadgetBot Web (ID: yyy)
+✓ Role: admin
+✅ Import complete!
 ```
 
 ### Custom Input Path
@@ -201,12 +218,75 @@ npm run zitadel:import
 npm run zitadel:import -- --input=./backups/zitadel-dev-2025-01-15.json
 ```
 
-### What Gets Created?
+⚠️ **The import script does NOT preserve all settings!** You MUST manually fix these.
 
-1. **Projects** - Main organizational units
-2. **Roles** - Permission definitions within projects
-3. **Applications** - OAuth clients with redirect URIs
-4. **Grants** - User/org authorizations
+### Export New Client ID
+
+**In Zitadel Console**:
+
+1. Go to **Projects → GadgetBot → Applications → GadgetBot Web**
+2. Copy **Client ID** from Overview
+3. **Format**: Numbers only (e.g., `344936354465016579`)
+
+**Update .env**:
+
+```bash
+# Edit .env file
+ZITADEL_CLIENT_ID=<new-client-id-numbers-only>
+```
+
+### Fix OIDC Authentication Method
+
+**Issue**: The import script does NOT preserve the authentication method. Applications default to "Basic" authentication, which requires a client secret.
+
+**Impact**: OAuth flow fails with error: `invalid_client, empty client secret`
+
+**Why**: Better Auth uses PKCE flow (Proof Key for Code Exchange) which doesn't require a client secret. Setting the method to "None" enables PKCE.
+
+**In Zitadel Console** (same application page):
+
+1. Open Zitadel Console: http://localhost:8080/ui/console
+2. Navigate to: **Projects → GadgetBot → Applications → GadgetBot Web**
+3. Click **OIDC Configuration** section
+4. Find **Authentication Method** dropdown
+5. Change from "Basic" to **"None"**
+6. Click **Save**
+
+### Verify Redirect URIs
+
+**In Zitadel Console** (same application page):
+
+1. **Redirect URIs** (tab) page must include:
+   http://localhost:3001/api/auth/callback/zitadel
+
+2. **Post Logout URIs** must include:
+   http://localhost:3001
+
+3. **IMPORTANT**: Click **"+"** button after typing each URI before clicking Save
+
+4. Set **development mode** toggle to **ON** if available
+
+**Common Mistake**: Typing URIs and clicking Save without using "+" button → URIs don't persist.
+
+### Verify Environment
+
+```bash
+# Check for system env var conflicts
+printenv | grep BETTER_AUTH
+printenv | grep ZITADEL
+
+# If you see variables listed, they might override .env
+# See ZITADEL_3CONTAINER_NOTES.md section 5 for fix
+```
+
+**Your `.env` should have**:
+```env
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/gadgetbot
+ZITADEL_ISSUER_URL=http://localhost:8080
+ZITADEL_CLIENT_ID=<numbers-only>
+BETTER_AUTH_SECRET=<your-secret>
+BETTER_AUTH_URL=http://localhost:3001
+```
 
 ---
 

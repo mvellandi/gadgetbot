@@ -60,14 +60,13 @@ An application settings page will open
 ### 3.3 Configure Authentication Settings
 
 1. **Authentication Method**: Select **PKCE** (recommended for security)
+
 2. **Redirect URIs**: Add the following URLs with development mode enabled:
-   ```
    http://localhost:3001/api/auth/callback/zitadel
-   ```
+
 3. **Post Logout URIs**: Add:
-   ```
    http://localhost:3001
-   ```
+
 4. Click **Continue**
 
 > **Note**: We use port 3001 for the GadgetBot dev server because the Zitadel Login V2 UI container already uses port 3000.

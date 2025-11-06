@@ -128,7 +128,16 @@ async function exportZitadelConfig(): Promise<void> {
         }
       )
       const apps = (appsData as { result?: unknown[] })?.result || []
-      config.applications.push(...apps)
+
+      // Add projectId to each app for easier import
+      const appsWithProjectId = apps.map(app => {
+        if (typeof app === 'object' && app !== null) {
+          return { ...app, projectId: project.id }
+        }
+        return app
+      })
+
+      config.applications.push(...appsWithProjectId)
       console.log(`  ✓ ${apps.length} applications`)
 
       // Export roles

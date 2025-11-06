@@ -2,102 +2,15 @@
 
 ## Overview
 
-This document captures critical configuration issues discovered during OAuth testing with the official Zitadel 3-container setup (API + Login V2 + PostgreSQL).
-
-**IMPORTANT**: These issues must be addressed after any Zitadel configuration import. The import script does NOT preserve all settings correctly.
+This document summarizes key configuration details and fixes encountered when integrating GadgetBot with a Zitadel 3-container setup (Zitadel API, Login V2 UI, PostgreSQL DB). It highlights important port settings, environment variable precedence issues, and necessary code changes to ensure proper OAuth authentication flow.
 
 ---
 
-## ⚠️ Post-Import Configuration Checklist
+## Key Configuration Details
 
-After running `npm run zitadel:import`, you MUST manually verify and fix these settings:
+See [zitadel_migration.md](ZITADEL_MIGRATION.md) for import steps and fixes related to migrating GadgetBot configuration to the 3-container setup.
 
-### 1. OIDC Authentication Method (CRITICAL)
-
-**Issue**: The import script does NOT preserve the authentication method. Applications default to "Basic" authentication, which requires a client secret.
-
-**Impact**: OAuth flow fails with error: `invalid_client, empty client secret`
-
-**Fix**:
-1. Open Zitadel Console: http://localhost:8080/ui/console
-2. Navigate to: **Projects → GadgetBot → Applications → GadgetBot Web**
-3. Click **OIDC Configuration** section
-4. Find **Authentication Method** dropdown
-5. Change from "Basic" to **"None"**
-6. Click **Save**
-
-**Why**: Better Auth uses PKCE flow (Proof Key for Code Exchange) which doesn't require a client secret. Setting the method to "None" enables PKCE.
-
-**Evidence**: This setting was not copied over during import, causing authentication failures even with correct Client ID and redirect URIs.
-
----
-
-### 2. Client ID Format (3-Container Specific)
-
-**Issue**: Different Zitadel setups use different Client ID formats. The 3-container setup uses numbers only.
-
-**Client ID Format by Setup**:
-
-```env
-# ✅ 3-Container Setup (official Zitadel with Login V2)
-ZITADEL_CLIENT_ID=344936354465016579
-
-# ❌ Single-Container or Older Versions (may include project suffix)
-ZITADEL_CLIENT_ID=344936354465016579@gadgetbot
-```
-
-**How to Get the Correct Client ID**:
-
-1. Open Zitadel Console: http://localhost:8080/ui/console
-2. Login as `admin@gadgetbot.localhost` / `Admin123!`
-3. Navigate to: **Projects → GadgetBot → Applications → GadgetBot Web**
-4. Copy the **Client ID** shown in the Overview section
-5. The Console displays numbers only (e.g., `344936354465016579`)
-6. Do NOT add `@gadgetbot` or any suffix
-
-**Update `.env` file**:
-
-```env
-ZITADEL_CLIENT_ID=344936354465016579
-```
-
-**Common Mistakes**:
-- Using Client ID from old export file (`zitadel-export.json`) instead of current running instance
-- Adding `@gadgetbot` suffix when Console shows numbers only
-- Confusing Client ID with Project ID (there are multiple IDs in the Console)
-
-**Error if Incorrect**: `{error: "invalid_request", error_description: "Errors.App.NotFound"}`
-
----
-
-### 3. Redirect URIs Configuration
-
-**Issue**: Redirect URIs don't persist if you don't follow the exact save process in the Console UI.
-
-**Required URIs for Local Development**:
-
-```
-http://localhost:3001/api/auth/callback/zitadel
-http://localhost:3001
-```
-
-**Correct Save Process**:
-
-1. In Zitadel Console, navigate to Application → URLs section
-2. For EACH redirect URI:
-   - Type the full URI in the "Redirect URIs" input field
-   - **Click the "+" button** next to the input to officially add it to the list
-   - Verify it appears in the list below
-   - Repeat for all URIs
-3. Only after adding all URIs with the "+" button, click **Save** at the bottom
-
-**Common Mistake**: Typing all URIs and clicking Save without using the "+" button. This causes URIs to not persist.
-
-**Verification**: After saving, refresh the page and verify all URIs are still listed.
-
----
-
-### 4. Port Configuration
+### Port Configuration
 
 **Issue**: Zitadel Login V2 container runs on port 3000, conflicting with typical React dev servers.
 
@@ -116,11 +29,12 @@ npm run dev -- --port 3001
 ```
 
 **Zitadel Port Reference**:
+
 - **Port 8080**: Zitadel API (main container)
 - **Port 3000**: Login V2 UI (login container, shares network with main)
 - **Port 5432**: PostgreSQL database
 
-**Update Redirect URIs**: After changing to port 3001, update all redirect URIs in Zitadel Console to use port 3001.
+**Update Redirect URIs**: Ensure all redirect URIs in Zitadel Console to use port 3001.
 
 ---
 
@@ -280,16 +194,32 @@ env BETTER_AUTH_URL=http://localhost:3001 \
 
 ---
 
-## Future Improvements
+## Import Script Enhancements
 
-### Import Script Enhancements
+The import/export scripts have been updated with the following improvements:
 
-The `scripts/zitadel-import.ts` script should be updated to:
+### ✅ Completed Enhancements
+
+1. **Client ID Format Validation**: ✅
+   - Detects single-container (@suffix) vs 3-container (numeric only) formats
+   - Validates Client ID against `ZITADEL_CLIENT_ID` environment variable
+   - Shows clear warnings for mismatches
+
+2. **Multi-Strategy Project Matching**: ✅
+   - Strategy 1: Extract from @suffix (single-container)
+   - Strategy 2: Use exported projectId (3-container)
+   - Strategy 3: Match by application name patterns
+   - Now works for both single-container and 3-container exports
+
+3. **Enhanced Export**: ✅
+   - Exports now include `projectId` field for each application
+   - Easier import with explicit project relationships
+
+### Future Improvements
 
 1. **Preserve Authentication Method**: Set imported applications to "None" auth method by default
-2. **Validate Client ID Format**: Check and warn if Client ID format doesn't match expected pattern
-3. **Update Redirect URIs**: Parse and update URIs to match current `BETTER_AUTH_URL` from `.env`
-4. **Post-Import Checklist**: Print checklist of manual verification steps after import
+2. **Update Redirect URIs**: Parse and update URIs to match current `BETTER_AUTH_URL` from `.env`
+3. **Post-Import Checklist**: Print checklist of manual verification steps after import
 
 ### Helper Scripts
 
@@ -309,7 +239,7 @@ Consider creating:
 - Project Files:
   - [src/auth/server.ts](src/auth/server.ts) - Better Auth configuration
   - [scripts/zitadel-import.ts](scripts/zitadel-import.ts) - Import script
-  - [docker-compose.zitadel-test.yml](docker-compose.zitadel-test.yml) - 3-container setup
+  - [docker-compose.zitadel.local.yml](docker-compose.zitadel.local.yml) - 3-container setup
   - [docs/AUTH_SETUP.md](docs/AUTH_SETUP.md) - Authentication setup guide
   - [docs/ZITADEL_MIGRATION.md](docs/ZITADEL_MIGRATION.md) - Import/export guide
 
@@ -326,7 +256,6 @@ Consider creating:
 **Final Configuration**: App on port 3001, Client ID without suffix, PKCE enabled, environment variables verified
 
 **Next Steps**:
-1. Test additional Login V2 features (password reset, account selection)
-2. Evaluate Login V2 benefits vs 3-container complexity for production
-3. Update import script to preserve authentication method
-4. Document production deployment approach
+
+- Update import script to preserve authentication method
+- Document production deployment approach
