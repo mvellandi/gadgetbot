@@ -714,13 +714,24 @@ docker exec db-poo88s8sskwgogwwkgkgk8k4 psql -U postgres -d zitadel -c "YOUR_SQL
 
 **Important**: The Zitadel container is distroless and doesn't have shell/psql. Always use the separate PostgreSQL container.
 
+### Post-Deployment Notes
+
+**Email Verification Status**:
+- After updating admin user details (username, email) in Zitadel Console, the email may show as "not verified"
+- This is **cosmetic only** and doesn't affect authentication functionality
+- Admin can still log in, manage users, and configure OAuth applications
+- **Do not** manually update the database to change verification status (risky due to event sourcing)
+- If email verification is needed, configure SMTP in Zitadel and use the built-in verification flow
+
 ---
 
 ## Next Steps
 
 1. ✅ **Documented production state**: Updated this file with actual production findings
-2. **Create admin user for GadgetBot app**: Follow documented process in AUTH_SETUP.md
-3. **Update deployment guides**: Add production database access patterns to deployment docs
+2. ✅ **Production login successful**: Confirmed with default password `Password1!`
+3. ✅ **Admin password changed**: Set secure password after first login
+4. ✅ **Admin details updated**: Username and email configured
+5. **Create OAuth application for GadgetBot**: Follow documented process in AUTH_SETUP.md
 
 ---
 
