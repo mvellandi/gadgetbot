@@ -10,8 +10,8 @@ const EnvSchema = Schema.Struct({
 		Schema.nonEmptyString(),
 		Schema.startsWith("postgresql://"),
 	),
-	DATABASE_POOL_MIN: Schema.optional(Schema.Number.pipe(Schema.int())),
-	DATABASE_POOL_MAX: Schema.optional(Schema.Number.pipe(Schema.int())),
+	DATABASE_POOL_MIN: Schema.optional(Schema.NumberFromString.pipe(Schema.int())),
+	DATABASE_POOL_MAX: Schema.optional(Schema.NumberFromString.pipe(Schema.int())),
 
 	// Zitadel configuration
 	ZITADEL_ISSUER_URL: Schema.optional(Schema.String.pipe(Schema.startsWith("http"))),
