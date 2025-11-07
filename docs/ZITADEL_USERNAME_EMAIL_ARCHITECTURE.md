@@ -35,7 +35,7 @@ Zitadel uses a **multi-layered identity system** where usernames, emails, and lo
 - **Purpose**: Provides fully-qualified login names
 - **Location**: `projections.login_names3_domains.name`
 - **Format**: `{org_name}.{external_domain}` (e.g., `gadgetbot.gadgetbot-auth.vellandi.net`)
-- **Set during**: First instance initialization via `ZITADEL_FIRSTINSTANCE_ORG_NAME`
+- **Set during**: First instance initialization via `ZITADEL_FIRSTINSTANCE_ORG_NAME` and `ZITADEL_EXTERNALDOMAIN`
 
 ---
 
@@ -295,8 +295,7 @@ WHERE table_schema = 'auth' AND table_name LIKE '%login%';
 ```yaml
 ZITADEL_FIRSTINSTANCE_ORG_NAME: GadgetBot
 ZITADEL_FIRSTINSTANCE_ORG_HUMAN_USERNAME: admin
-ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORD: <secure_password>
-ZITADEL_FIRSTINSTANCE_ORG_HUMAN_EMAIL: admin@gadgetbot.gadgetbot-auth.vellandi.net
+ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORD: Admin123!
 ZITADEL_FIRSTINSTANCE_ORG_HUMAN_EMAIL_VERIFIED: true
 ZITADEL_EXTERNALDOMAIN: gadgetbot-auth.vellandi.net
 ```
@@ -373,7 +372,8 @@ Zitadel **ignores** the `ZITADEL_FIRSTINSTANCE_ORG_HUMAN_EMAIL` environment vari
 email = {username}@{org_name_lower}.{external_domain}
 ```
 
-**Workaround**: After deployment, manually change the email via:
+**Workaround**: 
+After deployment, manually change the email via:
 - Zitadel Console UI (requires SMTP for verification)
 - Direct PostgreSQL update (bypass verification):
   ```sql
@@ -594,18 +594,141 @@ ZITADEL_FIRSTINSTANCE_ORG_HUMAN_EMAIL_VERIFIED: true
 
 ---
 
+## Production Deployment Findings
+
+**Date**: 2025-11-07
+**Environment**: Hetzner production server (Coolify deployment)
+
+### Actual Production Database State
+
+Queried the production Zitadel database directly:
+
+```sql
+SELECT u.id, u.username, h.email, h.display_name, u.state, u.type
+FROM projections.users14 u
+LEFT JOIN projections.users14_humans h ON u.id = h.user_id
+ORDER BY u.creation_date;
+```
+
+**Results**:
+```
+id                 | username                                      | email                                         | display_name  | state | type
+-------------------+-----------------------------------------------+-----------------------------------------------+---------------+-------+------
+345523391233066499 | zitadel-admin@zitadel.gadgetbot-auth.vell...  | zitadel-admin@zitadel.gadgetbot-auth.vell...  | ZITADEL Admin |     1 |    1
+345523391233132035 | login-client                                  |                                               |               |     1 |    2
+```
+
+### Key Findings
+
+1. **Initial Admin User**:
+   - **Username (loginname)**: `zitadel-admin@zitadel.gadgetbot-auth.vellandi.net`
+   - **Email**: `zitadel-admin@zitadel.gadgetbot-auth.vellandi.net`
+   - **Display Name**: `ZITADEL Admin`
+   - **Type**: 1 (human)
+   - **State**: 1 (active)
+
+2. **Service Account**:
+   - **Username**: `login-client`
+   - **Type**: 2 (machine/service account)
+   - **No email**: Service accounts don't have email addresses
+
+3. **Organization**:
+   ```sql
+   SELECT id, name, primary_domain FROM projections.orgs1;
+   ```
+
+   **Result**:
+   ```
+   id                 | name    | primary_domain
+   -------------------+---------+------------------------------------
+   345523391232542211 | ZITADEL | zitadel.gadgetbot-auth.vellandi.net
+   ```
+
+### Production Login Credentials
+
+For fresh Zitadel production deployments, the **loginname** for the initial admin user is:
+
+```
+zitadel-admin@zitadel.gadgetbot-auth.vellandi.net
+```
+
+**Password**: When not specified in environment variables, Zitadel uses the default password:
+
+```
+Password1!
+```
+
+**⚠️ Security Note**: The default password `Password1!` should be changed immediately after first login.
+
+This follows the pattern:
+```
+{ZITADEL_FIRSTINSTANCE_ORG_HUMAN_USERNAME}@{org_name_lower}.{ZITADEL_EXTERNALDOMAIN}
+```
+
+**Environment variables analysis** (from docker-compose.zitadel.production.yml):
+
+The production deployment used Zitadel's default values when these environment variables were **not set**:
+
+```yaml
+# What was set:
+ZITADEL_EXTERNALDOMAIN: gadgetbot-auth.vellandi.net
+ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORDCHANGEREQUIRED: false
+
+# What was NOT set (so Zitadel used defaults):
+# ZITADEL_FIRSTINSTANCE_ORG_NAME: (default: "ZITADEL")
+# ZITADEL_FIRSTINSTANCE_ORG_HUMAN_USERNAME: (default: "zitadel-admin")
+# ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORD: (default: "Password1!")
+# ZITADEL_FIRSTINSTANCE_ORG_HUMAN_EMAIL: (auto-generated from username)
+```
+
+**Evidence from database**:
+```sql
+-- User creation event payload:
+SELECT event_type, payload FROM eventstore.events2
+WHERE aggregate_id = '345523391233066499' AND event_type = 'user.human.added';
+
+-- Shows encodedHash (bcrypt) was set during user creation
+-- This confirms a password was set using Zitadel's default
+```
+
+### Database Access Commands
+
+For future reference, here are the exact commands used to access production data:
+
+**SSH into server**:
+```bash
+ssh hetzner-gadgetbot
+```
+
+**List Docker containers**:
+```bash
+docker ps --filter name=zitadel
+docker ps --filter name=db
+```
+
+**Query database** (use the db container, not zitadel container):
+```bash
+# Note: Container name format is db-{coolify-id}
+docker exec db-poo88s8sskwgogwwkgkgk8k4 psql -U postgres -d zitadel -c "YOUR_SQL_QUERY"
+```
+
+**Important**: The Zitadel container is distroless and doesn't have shell/psql. Always use the separate PostgreSQL container.
+
+---
+
 ## Next Steps
 
-1. **Test old username**: Verify `admin@gadgetbot.gadgetbot-auth.vellandi.net` still works
-2. **If it works**: Investigate why (email fallback? cached credentials?)
-3. **Document findings**: Update this document with test results
-4. **Update deployment guide**: Add username best practices to `ZITADEL_COOLIFY_COMPOSE.md`
+1. ✅ **Documented production state**: Updated this file with actual production findings
+2. **Create admin user for GadgetBot app**: Follow documented process in AUTH_SETUP.md
+3. **Update deployment guides**: Add production database access patterns to deployment docs
 
 ---
 
 ## References
 
-- Database investigation: 2025-11-01
-- Zitadel version: v4.x (latest)
-- PostgreSQL schema: Inspected via `psql` on production instance
+- Database investigation: 2025-11-01 (initial), 2025-11-07 (production)
+- Zitadel version: v4.x (latest, ghcr.io/zitadel/zitadel:latest)
+- PostgreSQL schema: Inspected via `psql` on production instance (Hetzner)
 - Event sourcing: Analyzed `eventstore.events2` for user lifecycle
+- Production deployment: Coolify on Hetzner Cloud
+- Database container: Managed by Coolify (separate from Zitadel container)

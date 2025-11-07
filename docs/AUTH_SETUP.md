@@ -32,9 +32,16 @@ Look for the message: `server is listening on [::]:8080`
    - **Password**: `Admin123!` (you will be prompted to change this on first login)
    - **New Password**: `Gadgetbot123!` (for your own local development environment)
 
-   > **Note**: Zitadel login requires the email address, not the username.
+**Notes**:
 
-   > **Troubleshooting**: If you get "user could not be found", the initial admin user wasn't created properly. See the [Reset Zitadel](#reset-zitadel-fresh-start) section below to fix this.
+- Zitadel 'Loginname' is a computed value based on 'ZITADEL_FIRSTINSTANCE_ORG_*=' environment variables in the docker-compose setup.
+- 'ZITADEL_FIRSTINSTANCE_ORG_HUMAN_USERNAME' defaults to 'zitadel-admin'
+- 'ZITADEL_FIRSTINSTANCE_ORG_NAME' defaults to 'zitadel'
+- 'ZITADEL_EXTERNALDOMAIN' defaults to 'localhost'
+- 'Loginname' is: `<username>@<org_name>.<external_domain>`
+_ More info at [Zitadel username email](/docs/ZITADEL_USERNAME_EMAIL_ARCHITECTURE.md)
+
+**Troubleshooting**: If you get "user could not be found", the initial admin user wasn't created properly. See the [Reset Zitadel](#reset-zitadel-fresh-start) section below to fix this.
 
 ## Step 3: Create an OAuth Application
 

@@ -38,12 +38,12 @@ services:
       ZITADEL_SAML_DEFAULTLOGINURLV2: http://localhost:3000/ui/v2/login/login?samlRequest=
 
       # First instance configuration (GadgetBot admin)
+      # Initial auth 'loginname' is: <username>@<org name>.<external domain> <- (defaults to 'localhost')
       ZITADEL_FIRSTINSTANCE_ORG_NAME: GadgetBot
       ZITADEL_FIRSTINSTANCE_ORG_HUMAN_USERNAME: admin
       ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORD: Admin123!
       ZITADEL_FIRSTINSTANCE_ORG_HUMAN_FIRSTNAME: Admin
       ZITADEL_FIRSTINSTANCE_ORG_HUMAN_LASTNAME: User
-      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_EMAIL: admin@gadgetbot.localhost
       ZITADEL_FIRSTINSTANCE_ORG_HUMAN_EMAIL_VERIFIED: "true"
 
       # Logging
