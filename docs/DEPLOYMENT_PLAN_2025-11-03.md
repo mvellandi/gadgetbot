@@ -241,7 +241,7 @@ BETTER_AUTH_SECRET=<generate-32-char-secret>
 # Zitadel OAuth (get from Zitadel console after creating OAuth app)
 ZITADEL_ISSUER=https://gadgetbot-auth.vellandi.net
 ZITADEL_CLIENT_ID=<from-zitadel-console>
-ZITADEL_CLIENT_SECRET=<from-zitadel-console>
+ZITADEL_CLIENT_SECRET=<from-zitadel-console> (available after project creation/import)
 
 # Optional: Client-side variables
 VITE_APP_TITLE=GadgetBot
@@ -250,7 +250,7 @@ VITE_SERVER_URL=https://gadgetbot.vellandi.net
 
 #### 2.4 Enable Auto-Deploy
 
-In Coolify app settings:
+In Coolify Advanced app settings:
 - ✅ Enable **Auto Deploy**
 - ✅ Set webhook for GitHub (Coolify provides URL)
 - Now: `git push origin main` triggers automatic deployment
