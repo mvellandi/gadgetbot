@@ -1,5 +1,5 @@
 # Multi-stage build for production
-FROM node:20-alpine AS builder
+FROM node:22-alpine AS builder
 
 # Set working directory
 WORKDIR /app
@@ -17,10 +17,17 @@ COPY . .
 RUN npm run build
 
 # Production stage
-FROM node:20-alpine
+FROM node:22-alpine
 
 # Set working directory
 WORKDIR /app
+
+# Install dumb-init for proper signal handling
+RUN apk add --no-cache dumb-init
+
+# Create non-root user for security
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 nodejs
 
 # Copy package files
 COPY package*.json ./
@@ -29,8 +36,15 @@ COPY package*.json ./
 RUN npm ci --omit=dev
 
 # Copy built application from builder
-COPY --from=builder /app/.output ./.output
-COPY --from=builder /app/public ./public
+COPY --from=builder --chown=nodejs:nodejs /app/.output ./.output
+COPY --from=builder --chown=nodejs:nodejs /app/public ./public
+
+# Copy database migration files (needed for runtime migrations)
+COPY --from=builder --chown=nodejs:nodejs /app/src/db ./src/db
+COPY --from=builder --chown=nodejs:nodejs /app/drizzle.config.ts ./drizzle.config.ts
+
+# Switch to non-root user
+USER nodejs
 
 # Expose port
 EXPOSE 3000
@@ -41,6 +55,9 @@ ENV NODE_ENV=production
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=40s \
   CMD node -e "require('http').get('http://localhost:3000', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
+
+# Use dumb-init to handle signals properly
+ENTRYPOINT ["dumb-init", "--"]
 
 # Start the application
 CMD ["node", ".output/server/index.mjs"]

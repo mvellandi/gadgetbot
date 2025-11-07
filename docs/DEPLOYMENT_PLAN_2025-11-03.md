@@ -49,8 +49,7 @@ Based on [DEPLOYMENT_PROGRESS_2025-11-01.md](./DEPLOYMENT_PROGRESS_2025-11-01.md
 
 ### 🚧 To Be Deployed
 
-1. **Zitadel Login V2 UI** (part of zitadel-stack)
-2. **GadgetBot Application** (separate resource)
+**GadgetBot Application** (separate resource)
 
 ---
 
@@ -74,7 +73,7 @@ Coolify Resources (4 total):
 3. zitadel-stack
    Type: Docker Compose
    Purpose: Authentication services (stable, rarely updated)
-   Status: 🚧 To be upgraded with Login V2
+   Status: ✅ Deployed
    Services:
    ├── zitadel (auth server)
    └── zitadel-login (Login V2 UI)

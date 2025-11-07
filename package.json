@@ -6,6 +6,7 @@
     "dev": "vite dev --port 3001",
     "build": "vite build",
     "build:clear": "rm -rf .vinxi",
+    "start": "node .output/server/index.mjs",
     "serve": "vite preview",
     "test": "vitest run",
     "format": "biome format",
