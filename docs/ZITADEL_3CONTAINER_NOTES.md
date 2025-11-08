@@ -239,7 +239,7 @@ Consider creating:
 - Project Files:
   - [src/auth/server.ts](src/auth/server.ts) - Better Auth configuration
   - [scripts/zitadel-import.ts](scripts/zitadel-import.ts) - Import script
-  - [docker-compose.zitadel.local.yml](docker-compose.zitadel.local.yml) - 3-container setup
+  - [zitadel/docker-compose.local.yml](zitadel/docker-compose.local.yml) - 3-container setup
   - [docs/AUTH_SETUP.md](docs/AUTH_SETUP.md) - Authentication setup guide
   - [docs/ZITADEL_MIGRATION.md](docs/ZITADEL_MIGRATION.md) - Import/export guide
 

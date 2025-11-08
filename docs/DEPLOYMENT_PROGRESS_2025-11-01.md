@@ -87,7 +87,7 @@
 ## 🚧 Next Steps
 
 ### 10. Zitadel Configuration Migration
-Using the existing `zitadel-export.json` from local development to create projects and OAuth apps in production.
+Using the existing `zitadel/export.json` from local development to create projects and OAuth apps in production.
 
 **Prerequisites:**
 - [ ] Create service user in Zitadel Console (username: `zitadel-migration`)
@@ -96,7 +96,7 @@ Using the existing `zitadel-export.json` from local development to create projec
 - [ ] Save token securely
 
 **Steps:**
-1. Review `zitadel-export.json` - contains projects and OAuth app config from local dev
+1. Review `zitadel/export.json` - contains projects and OAuth app config from local dev
 2. Update redirect URIs in export file to production domain:
    - From: `http://localhost:3000/api/auth/callback/zitadel`
    - To: `https://gadgetbot.vellandi.net/api/auth/callback/zitadel`

@@ -18,7 +18,7 @@ import { resolve } from 'node:path'
 
 const ZITADEL_API = process.env.ZITADEL_ISSUER_URL || 'http://localhost:8080'
 const OUTPUT_FILE = process.argv.find(arg => arg.startsWith('--output='))?.split('=')[1] ||
-  resolve(process.cwd(), 'zitadel-export.json')
+  resolve(process.cwd(), 'zitadel/export.json')
 
 interface ZitadelConfig {
   exportedAt: string

@@ -166,7 +166,7 @@ Coolify Resources (4 total):
 
 #### 1.1 Prepare Docker Compose File
 
-Create `docker-compose.zitadel.production.yml` based on [docker-compose.zitadel.local.yml](../docker-compose.zitadel.local.yml):
+Create `zitadel/docker-compose.production.yml` based on [zitadel/docker-compose.local.yml](../zitadel/docker-compose.local.yml):
 
 **Key changes for production:**
 - Set `ZITADEL_EXTERNALDOMAIN=gadgetbot-auth.vellandi.net`
@@ -179,7 +179,7 @@ Create `docker-compose.zitadel.production.yml` based on [docker-compose.zitadel.
 #### 1.2 Deploy via Coolify
 
 1. In Coolify dashboard: **+ New → Docker Compose**
-2. Upload `docker-compose.zitadel.production.yml`
+2. Upload `zitadel/docker-compose.production.yml`
 3. Set environment variables:
    - `ZITADEL_MASTERKEY` (generate 32-char secret)
    - Database credentials from `zitadel-db` resource
@@ -266,7 +266,7 @@ ZITADEL_CLIENT_ID=<from-phase-3>
 Setup GitHub webhook for auto-deployment:
 
 1. **In Coolify** → App → **Webhooks** tab:
-   - Copy the webhook URL
+   - Copy the webhook URL for GitHub (or other VCS)
    - Create a secret (any string)
 
 2. **In GitHub** → Repository → **Settings** → **Webhooks** → **Add webhook**:
@@ -323,35 +323,91 @@ Setup GitHub webhook for auto-deployment:
 
 ### Phase 3: Configure Zitadel OAuth
 
-#### 3.1 Create OAuth Application in Zitadel
+#### 3.1 Setup Zitadel Configuration
+
+You have two options:
+
+**Option A: Import from Development (Recommended)**
+
+If you've already configured Zitadel in development, import the configuration:
+
+1. **Export from development** (if not already done):
+   ```bash
+   # In development environment
+   export ZITADEL_SERVICE_TOKEN=<dev-service-token>
+   npm run zitadel:export
+   # Exports to zitadel/export.json by default
+   ```
+
+2. **Commit export file** (safe - contains no secrets):
+   ```bash
+   git add zitadel/export.json
+   git commit -m "feat: add Zitadel production config"
+   git push
+   ```
+
+3. **Add service token to Coolify**:
+   - In Coolify: Go to `zitadel-stack` resource → **Environment Variables**
+   - Add: `ZITADEL_SERVICE_TOKEN=<prod-service-token>`
+   - Click **Save**
+
+   > **Creating the service token**: See [ZITADEL_MIGRATION.md - Prerequisites](./ZITADEL_MIGRATION.md#prerequisites) for creating a service user with Organization Owner Manager role
+
+4. **Import via Coolify terminal**:
+   - In Coolify: Go to `gadgetbot-app` resource → **Terminal** tab
+   - Run:
+     ```bash
+     npm run zitadel:import -- --dry-run
+     npm run zitadel:import
+     # Imports from zitadel/export.json by default
+     ```
+
+5. **Post-import fixes** (IMPORTANT - import doesn't preserve all settings):
+   - Login to Zitadel Console: `https://gadgetbot-auth.vellandi.net/ui/console`
+   - Navigate to: **Projects → GadgetBot → Applications → GadgetBot Web**
+   - Fix **OIDC Authentication Method**: Change from "Basic" to **"None"**
+   - Verify **Redirect URIs**: `https://gadgetbot.vellandi.net/api/auth/callback/zitadel`
+   - Verify **Post Logout URIs**: `https://gadgetbot.vellandi.net`
+   - Copy the **Client ID** (numbers only format, e.g., `344936354465016579`)
+
+> **Complete documentation**: See [ZITADEL_MIGRATION.md](./ZITADEL_MIGRATION.md) for:
+> - Service user setup
+> - Import troubleshooting
+> - Security notes (export files are safe to commit)
+> - Production deployment workflow
+
+**Option B: Manual Configuration**
+
+If you prefer to set up Zitadel from scratch:
 
 1. Login to Zitadel: `https://gadgetbot-auth.vellandi.net/ui/console`
-2. Go to **Projects** → Create or select project
+2. Go to **Projects** → Create new project named "GadgetBot"
 3. Click **New Application**
 4. Configure:
    - **Name**: GadgetBot Production
    - **Type**: Web
-   - **Authentication Method**: PKCE
+   - **Authentication Method**: PKCE (select "None")
 5. **Redirect URIs**:
    - Add: `https://gadgetbot.vellandi.net/api/auth/callback/zitadel`
 6. **Post Logout URIs**:
    - Add: `https://gadgetbot.vellandi.net`
 7. Click **Save**
-8. **Copy credentials**:
-   - Client ID
-   - Client Secret (generate if needed)
+8. **Copy Client ID** (numbers only format)
 
 #### 3.2 Update GadgetBot Environment Variables
 
 1. In Coolify, go to `gadgetbot-app` resource
 2. **Environment Variables** tab
-3. Update:
+3. Update (using Client ID from step 3.1):
    ```env
-   ZITADEL_CLIENT_ID=<from-zitadel-console>
-   ZITADEL_CLIENT_SECRET=<from-zitadel-console>
+   ZITADEL_CLIENT_ID=<client-id-numbers-only>
    ```
+   Example: `ZITADEL_CLIENT_ID=344936354465016579`
+
 4. Click **Save**
 5. Click **Restart** (or **Redeploy**)
+
+> **Note:** No client secret needed - we're using PKCE authentication which is more secure for web applications.
 
 ---
 
@@ -482,7 +538,7 @@ cd /data/coolify
 **Process:**
 1. Plan maintenance window (off-peak hours)
 2. Notify users (if applicable)
-3. Update `docker-compose.zitadel.production.yml`
+3. Update `zitadel/docker-compose.production.yml`
 4. Redeploy in Coolify
 5. Wait for health checks (~2 minutes)
 6. Verify auth flow
@@ -525,7 +581,7 @@ docker exec <zitadel-db-container> pg_dump -U postgres zitadel > zitadel_backup_
 #### Configuration Backups
 
 **Files to backup:**
-- `docker-compose.zitadel.production.yml`
+- `zitadel/docker-compose.production.yml`
 - Coolify environment variables (export from UI)
 - Zitadel OAuth app credentials
 - DNS records documentation
@@ -660,7 +716,7 @@ docker exec <zitadel-db-container> pg_dump -U postgres zitadel > zitadel_backup_
 
 ## Next Steps
 
-1. [ ] Create `docker-compose.zitadel.production.yml` based on test version
+1. [ ] Create `zitadel/docker-compose.production.yml` based on test version
 2. [ ] Upgrade existing Zitadel deployment with Login V2
 3. [ ] Test Login V2 UI in production
 4. [ ] Create Coolify Application resource for GadgetBot
@@ -683,7 +739,7 @@ docker exec <zitadel-db-container> pg_dump -U postgres zitadel > zitadel_backup_
 - [DEPLOYMENT_COOLIFY.md](./DEPLOYMENT_COOLIFY.md) - Comprehensive Coolify guide
 - [AUTH_SETUP.md](./AUTH_SETUP.md) - Authentication setup guide
 - [CLAUDE.md](../CLAUDE.md) - Project architecture
-- [docker-compose.zitadel.local.yml](../docker-compose.zitadel.local.yml) - Local Zitadel config (reference for production)
+- [zitadel/docker-compose.local.yml](../zitadel/docker-compose.local.yml) - Local Zitadel config (reference for production)
 
 ---
 

@@ -665,7 +665,7 @@ This follows the pattern:
 {ZITADEL_FIRSTINSTANCE_ORG_HUMAN_USERNAME}@{org_name_lower}.{ZITADEL_EXTERNALDOMAIN}
 ```
 
-**Environment variables analysis** (from docker-compose.zitadel.production.yml):
+**Environment variables analysis** (from zitadel/docker-compose.production.yml):
 
 The production deployment used Zitadel's default values when these environment variables were **not set**:
 

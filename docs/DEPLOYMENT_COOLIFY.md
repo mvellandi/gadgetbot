@@ -364,7 +364,7 @@ Both databases should show as "Running" in the Resources list. Click on each to 
 
 4. **Docker Command**:
    ```bash
-   start-from-init --masterkeyFromEnv --config /zitadel-config.yaml
+   start-from-init --masterkeyFromEnv --config /zitadel/config.yaml
    ```
 
 5. **Domain Settings**:
@@ -373,8 +373,8 @@ Both databases should show as "Running" in the Resources list. Click on each to 
 
 6. **Volumes** (for config file):
    - Click "Add Volume"
-   - **Source Path**: `/path/to/your/zitadel-config.yaml` (we'll upload this)
-   - **Destination Path**: `/zitadel-config.yaml`
+   - **Source Path**: `/path/to/your/zitadel/config.yaml` (we'll upload this)
+   - **Destination Path**: `/zitadel/config.yaml`
    - **Read Only**: Yes
 
 7. **Port Mapping**:
@@ -389,13 +389,13 @@ Before deploying, we need to upload the Zitadel config:
 
 **Option 1: Via Coolify File Manager**
 1. In Zitadel resource, go to **Files** tab
-2. Upload `zitadel-config.yaml` from your repo
-3. Path: `/zitadel-config.yaml`
+2. Upload `zitadel/config.yaml` from your repo
+3. Path: `/zitadel/config.yaml`
 
 **Option 2: Via SCP**
 ```bash
 # On your local machine
-scp zitadel-config.yaml root@YOUR_SERVER_IP:/root/zitadel-config.yaml
+scp zitadel/config.yaml root@YOUR_SERVER_IP:/root/zitadel/config.yaml
 
 # Then in Coolify, mount it as a volume
 ```
@@ -700,7 +700,7 @@ Coolify handles this automatically via Let's Encrypt:
 **Check Config File:**
 1. Go to Zitadel resource
 2. **Files** tab
-3. Verify `zitadel-config.yaml` exists and is correct
+3. Verify `zitadel/config.yaml` exists and is correct
 
 **View Logs:**
 1. Zitadel resource → **Logs** tab

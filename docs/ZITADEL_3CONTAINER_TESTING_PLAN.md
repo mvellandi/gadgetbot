@@ -11,8 +11,8 @@
 
 1. **Official Setup Downloaded**
    - Downloaded official docker-compose.yaml from Zitadel docs
-   - Created `docker-compose.zitadel-official.yml` (unmodified reference)
-   - Created `docker-compose.zitadel.local.yml` (customized for GadgetBot)
+   - Created `zitadel/docker-compose.official.yml` (unmodified reference)
+   - Created `zitadel/docker-compose.local.yml` (customized for GadgetBot)
 
 2. **3-Container Architecture Working**
    - ✅ Zitadel API container (port 8080)
@@ -44,7 +44,7 @@
 **Preparation:**
 
 1. **Update docker-compose.zitadel-prod.yml**
-   - Base it on `docker-compose.zitadel.local.yml`
+   - Base it on `zitadel/docker-compose.local.yml`
    - Configure for external domain
    - Update environment variables for production
 
@@ -110,8 +110,8 @@ If 3-container setup proves too complex for production:
 ## Key Files
 
 **Compose Files:**
-- `docker-compose.zitadel-official.yml` - Unmodified official example (reference)
-- `docker-compose.zitadel.local.yml` - Local 3-container setup (GadgetBot customized, currently used)
+- `zitadel/docker-compose.official.yml` - Unmodified official example (reference)
+- `zitadel/docker-compose.local.yml` - Local 3-container setup (GadgetBot customized, currently used)
 
 **Scripts:**
 - `scripts/zitadel-import.ts` - Enhanced import with 3-container support

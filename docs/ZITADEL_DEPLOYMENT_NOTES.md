@@ -129,13 +129,13 @@ ssh hetzner-gadgetbot "docker restart coolify-proxy"
 ### Prerequisites
 1. Domain DNS configured: `gadgetbot-auth.vellandi.net` → Server IP
 2. Environment variables set in Coolify (see `.env.zitadel.production.example`)
-3. Docker Compose file: `docker-compose.zitadel.production.yml`
+3. Docker Compose file: `zitadel/docker-compose.production.yml`
 
 ### Deployment Process
 
 1. **Upload docker-compose file to Coolify**
    - Create new Service in Coolify
-   - Upload `docker-compose.zitadel.production.yml`
+   - Upload `zitadel/docker-compose.production.yml`
    - Set environment variables
 
 2. **Delete existing volumes** (if redeploying):
@@ -183,7 +183,7 @@ POSTGRES_PASSWORD=<secure-password>
 ZITADEL_DB_PASSWORD=<secure-password>
 ```
 
-### In docker-compose.zitadel.production.yml
+### In zitadel/docker-compose.production.yml
 ```yaml
 # Zitadel Container
 ZITADEL_EXTERNALDOMAIN: gadgetbot-auth.vellandi.net
@@ -383,7 +383,7 @@ docker volume rm poo88s8sskwgogwwkgkgk8k4_zitadel-db-data
 - [CLAUDE.md](../CLAUDE.md) - Project architecture and authentication overview
 - [AUTH_SETUP.md](./AUTH_SETUP.md) - Local development authentication setup
 - [DEPLOYMENT_SUMMARY.md](./DEPLOYMENT_SUMMARY.md) - Deployment architecture overview
-- [docker-compose.zitadel.production.yml](../docker-compose.zitadel.production.yml) - Production compose file
+- [zitadel/docker-compose.production.yml](../zitadel/docker-compose.production.yml) - Production compose file
 - [.env.zitadel.production.example](../.env.zitadel.production.example) - Environment variables template
 
 ---

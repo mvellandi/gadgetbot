@@ -129,7 +129,7 @@ After importing to production:
 npm run zitadel:export
 ```
 
-This creates `zitadel-export.json` with:
+This creates `zitadel/export.json` with:
 - Projects
 - Applications (OAuth clients)
 - Roles
@@ -489,7 +489,7 @@ curl $ZITADEL_ISSUER_URL/.well-known/openid-configuration
 
 ### Safe to Commit
 
-✅ **zitadel-export.json** - Contains configuration, not secrets
+✅ **zitadel/export.json** - Contains configuration, not secrets
 - Project names, roles, redirect URIs
 - No passwords, tokens, or user data
 

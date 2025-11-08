@@ -53,9 +53,9 @@ Internet
 ```
 gadgetbot/
 ├── docker-compose.zitadel.prod.yml  # Not yet created
-├── docker-compose.zitadel.local.yml # Zitadel for local development
+├── zitadel/docker-compose.local.yml # Zitadel for local development
 ├── .env.zitadel.example             # Zitadel environment template
-├── zitadel-export.json              # OAuth configuration export
+├── zitadel/export.json              # OAuth configuration export
 ├── scripts/
 │   ├── zitadel-export.ts           # Export Zitadel configuration
 │   └── zitadel-import.ts           # Import Zitadel configuration
