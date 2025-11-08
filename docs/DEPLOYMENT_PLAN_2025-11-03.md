@@ -267,7 +267,7 @@ Setup GitHub webhook for auto-deployment:
 
 1. **In Coolify** → App → **Webhooks** tab:
    - Copy the webhook URL
-   - Create a secret (any string will do)
+   - Create a secret (any string)
 
 2. **In GitHub** → Repository → **Settings** → **Webhooks** → **Add webhook**:
    - **Payload URL**: `https://gadgetbot-coolify.vellandi.net/api/v1/deploy?uuid=...`
