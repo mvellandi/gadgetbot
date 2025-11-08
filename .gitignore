@@ -13,6 +13,9 @@ dist-ssr
 .playwright-mcp
 .zitadel
 
+# Zitadel local environment files
+zitadel/.env.local
+
 # Production deployment files
 certbot/
 postgres_data/

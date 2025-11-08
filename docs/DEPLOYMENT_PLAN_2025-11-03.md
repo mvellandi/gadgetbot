@@ -229,37 +229,33 @@ Create `zitadel/docker-compose.production.yml` based on [zitadel/docker-compose.
 
 #### 2.3 Configure Environment Variables ✅
 
-In Coolify app settings → **Environment Variables** tab:
+**Location:** Coolify → gadgetbot-app → Configuration → **Environment Variables** tab
 
-**⚠️ Important:**
-- Set "Available at Runtime" for ALL variables
-- Do NOT set "Available at Buildtime" (except for `VITE_*` vars if added)
-- Dockerfile already sets `NODE_ENV=production`, no need to add it
+**⚠️ Important Checkbox Settings:**
+- ✅ "Available at Runtime" - Check for ALL variables
+- ⬜ "Available at Buildtime" - Uncheck (Dockerfile handles NODE_ENV)
+- Note: Do NOT add NODE_ENV manually - Dockerfile sets it automatically
 
-```env
-# Database (from gadgetbot-db resource in Coolify)
-# ⚠️ MUST use postgresql:// (not postgres://)
-DATABASE_URL=postgresql://postgres:<password>@<internal-host>:5432/gadgetbot
-DATABASE_POOL_MIN=2
-DATABASE_POOL_MAX=10
+**Required Variables:**
 
-# App URLs
-APP_URL=https://gadgetbot.vellandi.net
-BETTER_AUTH_URL=https://gadgetbot.vellandi.net
+| Variable | Value | Notes |
+|----------|-------|-------|
+| `DATABASE_URL` | `postgresql://postgres:<password>@<host>:5432/gadgetbot` | ⚠️ Must use `postgresql://` (not `postgres://`) |
+| `DATABASE_POOL_MIN` | `2` | Parsed as number from string |
+| `DATABASE_POOL_MAX` | `10` | Parsed as number from string |
+| `APP_URL` | `https://gadgetbot.vellandi.net` | Your production domain |
+| `BETTER_AUTH_URL` | `https://gadgetbot.vellandi.net` | Same as APP_URL |
+| `BETTER_AUTH_SECRET` | `<generate>` | Generate: `openssl rand -base64 32` (32+ chars) |
+| `ZITADEL_ISSUER_URL` | `https://gadgetbot-auth.vellandi.net` | Zitadel instance URL |
+| `ZITADEL_CLIENT_ID` | `<from-phase-3>` | Leave empty for Phase 2, add in Phase 3 |
 
-# Better Auth (generate: openssl rand -base64 32)
-BETTER_AUTH_SECRET=<generate-32-char-secret>
+**How to Get Values:**
+- `DATABASE_URL`: Coolify → Resources → gadgetbot-db → Connection Details
+  - ⚠️ **Critical**: Change `postgres://` to `postgresql://` in the URL
+- `BETTER_AUTH_SECRET`: Run `openssl rand -base64 32` in terminal
+- `ZITADEL_CLIENT_ID`: Will get from Zitadel console in Phase 3
 
-# Zitadel OAuth (leave blank for now, add in Phase 3)
-ZITADEL_ISSUER_URL=https://gadgetbot-auth.vellandi.net
-ZITADEL_CLIENT_ID=<from-phase-3>
-```
-
-**Environment Variable Tips:**
-- `DATABASE_URL`: Get from Coolify's gadgetbot-db resource, change `postgres://` to `postgresql://`
-- `BETTER_AUTH_SECRET`: Must be 32+ characters
-- `ZITADEL_CLIENT_ID`: Leave empty for Phase 2, configure in Phase 3
-- Pool values are strings but parsed as numbers via `NumberFromString`
+**Note:** Production environment variables are managed in Coolify's UI, not in `.env` files
 
 #### 2.4 Enable Auto-Deploy ✅
 
