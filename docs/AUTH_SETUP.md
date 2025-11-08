@@ -30,7 +30,7 @@ Look for the message: `server is listening on [::]:8080`
 2. Sign in with the default admin credentials:
    - **Email**: `admin@gadgetbot.localhost`
    - **Password**: `Admin123!` (you will be prompted to change this on first login)
-   - **New Password**: `Gadgetbot123!` (for your own local development environment)
+   - **New Password**: `<new password>` (for your own local development environment)
 
 **Notes**:
 
@@ -187,7 +187,7 @@ The application will be available at: **http://localhost:3001**
 1. Navigate to: **http://localhost:3001/login**
 2. Click **Sign in with Zitadel**
 3. You'll be redirected to Zitadel's login page (Login V2 UI at port 3000)
-4. Sign in with your credentials (admin@gadgetbot.localhost / Gadgetbot123!)
+4. Sign in with your credentials (admin@gadgetbot.localhost / newpassword)
 5. Grant permission when prompted
 6. You'll be redirected back to `/admin/products`
 

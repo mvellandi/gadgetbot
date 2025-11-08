@@ -79,7 +79,7 @@ docker ps | grep zitadel
 
 3. **Change Password** (required):
    - Old: `Admin123!`
-   - New: `Gadgetbot123!`
+   - New: `something-stronger`
 
 ---
 
