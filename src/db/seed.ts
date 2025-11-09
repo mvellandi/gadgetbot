@@ -2,7 +2,7 @@ import { GadgetBot } from "@/domains/products/gadgetbot"
 
 /**
  * Seed database with sample GadgetBot data
- * Environment variables are loaded via --env-file flag
+ * Environment variables are loaded from process.env (works in both local and production)
  */
 
 const sampleGadgetBots = [
