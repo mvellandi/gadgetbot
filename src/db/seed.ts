@@ -1,4 +1,4 @@
-import { GadgetBot } from "../domains/products/gadgetbot.js"
+import { GadgetBot } from "../domains/products/gadgetbot"
 
 /**
  * Seed database with sample GadgetBot data
