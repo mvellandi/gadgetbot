@@ -28,11 +28,12 @@ async function resetDatabase() {
 	const db = drizzle(connection)
 
 	try {
-		// Drop all tables
-		console.log("🗑️  Dropping all tables...")
-		await db.execute(sql`DROP SCHEMA public CASCADE`)
+		// Drop all schemas (public and drizzle migration tracking)
+		console.log("🗑️  Dropping all schemas...")
+		await db.execute(sql`DROP SCHEMA IF EXISTS public CASCADE`)
+		await db.execute(sql`DROP SCHEMA IF EXISTS drizzle CASCADE`)
 		await db.execute(sql`CREATE SCHEMA public`)
-		console.log("✅ Tables dropped\n")
+		console.log("✅ Schemas dropped and recreated\n")
 
 		// Close connection for migrations
 		await connection.end()
