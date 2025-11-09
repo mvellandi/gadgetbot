@@ -7,6 +7,7 @@
 ## Overview
 
 This guide covers production deployment of GadgetBot, optimized for:
+
 - Independent GadgetBot updates without affecting authentication
 - Preserved user sessions during app deployments
 - Clear CI/CD path for automation
@@ -385,9 +386,11 @@ If you've already configured Zitadel in development, import the configuration:
    - Login to Zitadel Console: `https://gadgetbot-auth.vellandi.net/ui/console`
    - Navigate to: **Projects → GadgetBot → Applications → GadgetBot Web**
    - Fix **OIDC Authentication Method**: Change from "Basic" to **"None"**
+   - **Enable "Use new login UI"** checkbox (critical for v2 login container)
    - Verify **Redirect URIs**: `https://gadgetbot.vellandi.net/api/auth/callback/zitadel`
    - Verify **Post Logout URIs**: `https://gadgetbot.vellandi.net`
    - Copy the **Client ID** (numbers only format, e.g., `344936354465016579`)
+   - **Restart Zitadel containers** after making changes: `docker compose restart zitadel login`
 
 > **Complete documentation**: See [ZITADEL_MIGRATION.md](./ZITADEL_MIGRATION.md) for:
 > - Service user setup
@@ -410,8 +413,10 @@ If you prefer to set up Zitadel from scratch:
    - Add: `https://gadgetbot.vellandi.net/api/auth/callback/zitadel`
 6. **Post Logout URIs**:
    - Add: `https://gadgetbot.vellandi.net`
-7. Click **Save**
-8. **Copy Client ID** (numbers only format)
+7. **Enable "Use new login UI"** checkbox (critical for v2 login container)
+8. Click **Save**
+9. **Copy Client ID** (numbers only format)
+10. **Restart Zitadel containers**: `docker compose restart zitadel login`
 
 #### Update GadgetBot Environment Variables
 
@@ -689,6 +694,18 @@ docker exec <zitadel-db-container> pg_dump -U postgres zitadel > zitadel_backup_
 3. Verify `zitadel-login` container is running
 4. Check network mode: `network_mode: service:zitadel`
 5. Access directly: `https://gadgetbot-auth.vellandi.net/ui/v2/login`
+
+**Authentication hangs/timeouts on new browser tabs:**
+
+- **Symptom**: Existing Zitadel console tab works, but new tabs timeout when signing in
+- **URL shows**: `https://gadgetbot-auth.vellandi.net/ui/v2/login/login?authRequest=...` hangs
+- **Cause**: "Use new login UI" checkbox is disabled in Zitadel OIDC settings
+- **Solution**:
+  1. In working Zitadel console tab: Projects → GadgetBot → Applications → GadgetBot Web
+  2. Enable **"Use new login UI"** checkbox
+  3. Click **Save**
+  4. Restart Zitadel: `docker compose restart zitadel login`
+- **Why this happens**: OAuth flow redirects to v1 paths while login container handles v2 paths
 
 **Database initialization failed:**
 1. May need to reset database on first deployment

@@ -91,7 +91,13 @@ After creating the application, you'll see:
 
 ### 3.5 OIDC Configuration
 
-Select "Refresh Token" to add it to "Grant Types", then click **Save**.
+1. Select "Refresh Token" to add it to "Grant Types"
+2. **Enable "Use new login UI"** checkbox (required for v2 login container)
+   - This ensures OAuth flows use `/ui/v2/login` paths
+   - Critical for production deployments with separate login containers
+3. Click **Save**
+
+> **Important for Production**: If deploying with a separate Zitadel login container (`ghcr.io/zitadel/zitadel-login:latest`), you must enable the "Use new login UI" setting. Without this, authentication will timeout because the OAuth flow redirects to v1 paths while your login container handles v2 paths. After enabling, restart Zitadel containers for the change to take effect.
 
 ## Step 4: Configure Environment Variables
 
