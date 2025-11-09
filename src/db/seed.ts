@@ -1,13 +1,38 @@
-import { Effect } from "effect"
-import { createGadgetBot, findAllGadgetBots } from "./services/gadgetbot"
+import { config } from "dotenv"
+import { drizzle } from "drizzle-orm/postgres-js"
+import postgres from "postgres"
+import * as schema from "./schema"
+
+// Load environment variables from .env file (local dev only)
+// In production (Coolify), env vars are already set in process.env
+config()
 
 /**
  * Seed database with sample GadgetBot data
- * Environment variables are loaded from process.env (works in both local and production)
  *
- * This script uses the database service layer directly (not domain API)
- * because domain files are not included in production builds.
+ * This is a standalone script that:
+ * - Reads DATABASE_URL directly from process.env (no env.ts import)
+ * - Creates its own database connection inline
+ * - Works in both local development and production (Coolify containers)
+ *
+ * Why standalone: In production, src/env.ts is bundled into .output/ and not
+ * available as a separate file that tsx can import during seeding.
  */
+
+// Create standalone database connection
+const connectionString = process.env.DATABASE_URL
+
+if (!connectionString) {
+	throw new Error("DATABASE_URL environment variable is not set")
+}
+
+const connection = postgres(connectionString, {
+	max: Number(process.env.DATABASE_POOL_MAX) || 10,
+	idle_timeout: 20,
+	connect_timeout: 10,
+})
+
+const db = drizzle(connection, { schema })
 
 const sampleGadgetBots = [
 	{
@@ -57,7 +82,7 @@ async function seed() {
 
 	try {
 		// Check existing data
-		const existing = await Effect.runPromise(findAllGadgetBots())
+		const existing = await db.query.gadgetbots.findMany()
 		if (existing.length > 0) {
 			console.log(
 				`⚠️  Database already contains ${existing.length} GadgetBot(s)`,
@@ -66,10 +91,16 @@ async function seed() {
 			return
 		}
 
-		// Create sample GadgetBots
+		// Create sample GadgetBots using direct Drizzle insert
 		for (const bot of sampleGadgetBots) {
-			const created = await Effect.runPromise(createGadgetBot(bot))
-			console.log(`✅ Created: ${created.name} (${created.type})`)
+			const [created] = await db
+				.insert(schema.gadgetbots)
+				.values({
+					...bot,
+					status: "available",
+				})
+				.returning()
+			console.log(`✅ Created: ${created!.name} (${created!.type})`)
 		}
 
 		console.log(`\n🎉 Successfully seeded ${sampleGadgetBots.length} GadgetBots!`)
@@ -77,7 +108,8 @@ async function seed() {
 		console.error("❌ Seed failed:", error)
 		process.exit(1)
 	} finally {
-		// Exit process to close database connections
+		// Close database connection and exit
+		await connection.end()
 		process.exit(0)
 	}
 }
