@@ -251,7 +251,16 @@ Create `zitadel/docker-compose.production.yml` based on [zitadel/docker-compose.
 
 **How to Get Values:**
 - `DATABASE_URL`: Coolify → Resources → gadgetbot-db → Connection Details
-  - ⚠️ **Critical**: Change `postgres://` to `postgresql://` in the URL
+  - ⚠️ **Critical Changes Required**:
+    1. Change protocol: `postgres://` → `postgresql://`
+    2. Verify username and database name match actual PostgreSQL credentials
+    3. Coolify creates custom names (e.g., `gadgetbot_admin`/`gadgetbot`), not default `postgres`/`postgres`
+  - **How to verify actual credentials**:
+    ```bash
+    # SSH into server and check database container environment
+    docker exec <db-container-name> printenv | grep POSTGRES
+    ```
+  - **Example**: `postgresql://gadgetbot_admin:password@db-container:5432/gadgetbot`
 - `BETTER_AUTH_SECRET`: Run `openssl rand -base64 32` in terminal
 - `ZITADEL_CLIENT_ID`: Will get from Zitadel console in Phase 3
 
@@ -313,6 +322,21 @@ Setup GitHub webhook for auto-deployment:
 - **Cause**: Browser cache from previous failed SSL attempts
 - **Fix**: Hard refresh (`Cmd+Shift+R`) or test in incognito mode
 
+**Issue 6: Wrong DATABASE_URL Username/Database Name**
+- **Symptom**: `password authentication failed for user "postgres"` in logs when trying to sign in
+- **Cause**: Coolify PostgreSQL creates custom username (e.g., `gadgetbot_admin`) and database name (e.g., `gadgetbot`), not the default `postgres`/`postgres`
+- **How to Verify**: Check actual credentials via `docker exec <db-container> printenv | grep POSTGRES`
+- **Fix**: Update `DATABASE_URL` in Coolify with correct username and database name:
+  - ❌ Wrong: `postgresql://postgres:password@host:5432/postgres`
+  - ✅ Correct: `postgresql://gadgetbot_admin:password@host:5432/gadgetbot`
+
+**Issue 7: ZITADEL_ISSUER vs ZITADEL_ISSUER_URL**
+- **Symptom**: Login page hangs when clicking "Sign in with Zitadel"
+- **Cause**: Environment variable named `ZITADEL_ISSUER` instead of `ZITADEL_ISSUER_URL` (code expects `_URL` suffix)
+- **How to Verify**: Check env vars in running container: `docker exec <app-container> printenv | grep ZITADEL`
+- **Fix**: Rename `ZITADEL_ISSUER` to `ZITADEL_ISSUER_URL` in Coolify environment variables
+- **Code Reference**: See `src/auth/server.ts` line 31 and `src/env.ts` line 17
+
 **✅ Phase 2 Complete - Application Successfully Deployed!**
 
 ---
@@ -342,21 +366,37 @@ If you've already configured Zitadel in development, import the configuration:
    git push
    ```
 
-3. **Add service token to Coolify**:
-   - In Coolify: Go to `zitadel-stack` resource → **Environment Variables**
-   - Add: `ZITADEL_SERVICE_TOKEN=<prod-service-token>`
-   - Click **Save**
+3. **Create service token in production Zitadel**:
+   - Login to Zitadel Console: `https://gadgetbot-auth.vellandi.net/ui/console`
+   - Go to **Users → Service Users**
+   - Create new service user with **Organization Owner Manager** role
+   - Generate **Personal Access Token (PAT)**
+   - Copy the token (you'll need it in the next step)
 
-   > **Creating the service token**: See [ZITADEL_MIGRATION.md - Prerequisites](./ZITADEL_MIGRATION.md#prerequisites) for creating a service user with Organization Owner Manager role
+   > **Full instructions**: See [ZITADEL_MIGRATION.md - Prerequisites](./ZITADEL_MIGRATION.md#prerequisites)
 
-4. **Import via Coolify terminal**:
-   - In Coolify: Go to `gadgetbot-app` resource → **Terminal** tab
-   - Run:
+4. **Import from local machine** (NOT from Coolify container):
+   - On your **local development machine**, set environment variables:
+
+     ```bash
+     export ZITADEL_ISSUER_URL=https://gadgetbot-auth.vellandi.net
+     export ZITADEL_SERVICE_TOKEN=<prod-service-token-from-step-3>
+     ```
+
+   - Run dry-run first to verify:
+
      ```bash
      npm run zitadel:import -- --dry-run
+     ```
+
+   - If dry-run looks good, run actual import:
+
+     ```bash
      npm run zitadel:import
      # Imports from zitadel/export.json by default
      ```
+
+   > **Why local machine?** The import script makes HTTP API calls to Zitadel and reads `zitadel/export.json` from your local repo. It doesn't need to run inside any container.
 
 5. **Post-import fixes** (IMPORTANT - import doesn't preserve all settings):
    - Login to Zitadel Console: `https://gadgetbot-auth.vellandi.net/ui/console`
@@ -411,13 +451,32 @@ If you prefer to set up Zitadel from scratch:
 
 #### 4.1 Run Migrations via Coolify Terminal
 
+**⚠️ IMPORTANT: This step is required!** Without migrations, authentication tables won't exist and login will hang.
+
 1. In Coolify, go to `gadgetbot-app` resource
 2. Click **Terminal** tab (opens shell in container)
 3. Run:
    ```bash
    npm run db:migrate
    ```
-4. Verify success (check for migration completion messages)
+4. Verify success (check for migration completion messages):
+   ```
+   🔄 Starting database migration...
+   ✅ Migrations completed successfully
+   ```
+
+**What This Does:**
+- Creates authentication tables: `users`, `sessions`, `accounts`, `verifications`
+- Creates application tables: `gadgetbots`
+- Applies any pending schema changes
+
+**Troubleshooting:**
+
+**Issue: "relation 'verifications' does not exist" when trying to sign in**
+- **Symptom**: Login page hangs, server logs show `PostgresError: relation "verifications" does not exist`
+- **Cause**: Phase 4.1 migrations were not run
+- **Fix**: Run `npm run db:migrate` in Coolify Terminal
+- **Why**: Better Auth needs database tables to store OAuth state and sessions
 
 #### 4.2 Seed Database (Optional)
 
