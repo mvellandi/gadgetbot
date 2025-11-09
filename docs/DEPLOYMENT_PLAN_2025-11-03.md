@@ -478,7 +478,7 @@ If you prefer to set up Zitadel from scratch:
 - **Fix**: Run `npm run db:migrate` in Coolify Terminal
 - **Why**: Better Auth needs database tables to store OAuth state and sessions
 
-#### 4.2 Seed Database (Optional)
+#### 4.2 Seed Database (Optional) ✅
 
 ```bash
 # In container terminal
@@ -486,6 +486,13 @@ npm run db:seed
 ```
 
 This adds sample GadgetBot data for testing.
+
+**Status**: ✅ Completed (2025-11-09)
+
+- Fixed seed script to be standalone (no @/env imports)
+- Script now reads directly from process.env.DATABASE_URL
+- Uses direct Drizzle queries (no Effect service dependencies)
+- Verified working in production Coolify container
 
 #### 4.3 Verify Database
 
