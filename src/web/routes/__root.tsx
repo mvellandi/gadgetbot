@@ -8,7 +8,8 @@ import { TanStackDevtools } from '@tanstack/react-devtools'
 
 import TanStackQueryDevtools from '../integrations/tanstack-query/devtools'
 
-import appCss from '../styles.css?url'
+// Import CSS directly (Vite will handle bundling and injection)
+import '../styles.css'
 
 import type { QueryClient } from '@tanstack/react-query'
 
@@ -30,12 +31,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
         title: 'GadgetBot Rental Service',
       },
     ],
-    links: [
-      {
-        rel: 'stylesheet',
-        href: appCss,
-      },
-    ],
+    // CSS is now imported directly and injected by Vite during SSR
   }),
 
   shellComponent: RootDocument,
