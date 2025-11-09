@@ -2,11 +2,21 @@
 
 This document provides a high-level overview of the deployment setup.
 
-**Deployment Method:**
-- **[DEPLOYMENT_COOLIFY.md](./DEPLOYMENT_COOLIFY.md)** - ⭐ **Recommended** - Self-hosted Coolify with web UI
+**Deployment Guides:**
 
-**Zitadel-Specific Guide:**
-- **[ZITADEL_COOLIFY_COMPOSE.md](./ZITADEL_COOLIFY_COMPOSE.md)** - Step-by-step guide for deploying Zitadel on Coolify
+- **[DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)** - ⭐ **Comprehensive end-to-end deployment guide**
+- **[DEPLOYMENT_COOLIFY.md](./DEPLOYMENT_COOLIFY.md)** - Coolify installation and configuration
+
+**Authentication Setup:**
+
+- **[AUTH_SETUP.md](./AUTH_SETUP.md)** - Setting up Zitadel authentication with Better Auth
+- **[AUTH_PATTERNS.md](./AUTH_PATTERNS.md)** - Authentication development patterns
+
+**Zitadel Resources:**
+
+- **[ZITADEL_TROUBLESHOOTING.md](./ZITADEL_TROUBLESHOOTING.md)** - Troubleshooting and deployment notes
+- **[ZITADEL_MIGRATION.md](./ZITADEL_MIGRATION.md)** - Configuration export/import tools
+- **[ZITADEL_RESET.md](./ZITADEL_RESET.md)** - Resetting Zitadel for development
 
 ## What You're Deploying
 
@@ -15,8 +25,7 @@ GadgetBot is deployed as a multi-container Docker application with:
 - **PostgreSQL** - Database for both app and Zitadel
 - **Zitadel** - Self-hosted OAuth/OIDC authentication server
 - **GadgetBot App** - Your TanStack Start application
-- **Nginx** - Reverse proxy with SSL termination
-- **Certbot** - Automatic SSL certificate management
+- **Reverse Proxy** - SSL termination and routing (Traefik when using Coolify, or Nginx for manual deployments)
 
 ## Architecture Overview
 
@@ -27,9 +36,10 @@ Internet
    │                             │
    └─> Port 443 (HTTPS) ─────────┤
                                  │
-                            ┌────▼────┐
-                            │  Nginx  │ (Reverse Proxy + SSL)
-                            └────┬────┘
+                          ┌──────▼───────┐
+                          │ Reverse Proxy │ (SSL Termination)
+                          │ Traefik/Nginx │
+                          └──────┬───────┘
                                  │
                     ┏━━━━━━━━━━━━┻━━━━━━━━━━━━┓
                     ▼                         ▼
@@ -52,7 +62,6 @@ Internet
 
 ```
 gadgetbot/
-├── docker-compose.zitadel.prod.yml  # Not yet created
 ├── zitadel/docker-compose.local.yml # Zitadel for local development
 ├── .env.zitadel.example             # Zitadel environment template
 ├── zitadel/export.json              # OAuth configuration export
@@ -60,10 +69,14 @@ gadgetbot/
 │   ├── zitadel-export.ts           # Export Zitadel configuration
 │   └── zitadel-import.ts           # Import Zitadel configuration
 └── docs/
-    ├── DEPLOYMENT_COOLIFY.md        # Coolify deployment guide
+    ├── DEPLOYMENT_GUIDE.md          # Comprehensive deployment guide
+    ├── DEPLOYMENT_COOLIFY.md        # Coolify installation & config
     ├── DEPLOYMENT_SUMMARY.md        # This file (overview)
-    ├── ZITADEL_COOLIFY_COMPOSE.md   # Zitadel-specific deployment
-    └── ZITADEL_DEPLOYMENT_NOTES.md  # Deployment findings
+    ├── AUTH_SETUP.md                # Authentication setup
+    ├── AUTH_PATTERNS.md             # Authentication patterns
+    ├── ZITADEL_TROUBLESHOOTING.md   # Troubleshooting & notes
+    ├── ZITADEL_MIGRATION.md         # Config export/import
+    └── ZITADEL_RESET.md             # Reset Zitadel
 ```
 
 ## Resource Requirements
@@ -317,23 +330,19 @@ Update resource limits in `docker-compose.prod.yml` accordingly.
 
 ## Getting Help
 
-- **Coolify Deployment**: [DEPLOYMENT_COOLIFY.md](./DEPLOYMENT_COOLIFY.md) ⭐ Recommended
-- **Zitadel Deployment**: [ZITADEL_COOLIFY_COMPOSE.md](./ZITADEL_COOLIFY_COMPOSE.md)
+- **Deployment Guide**: [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md) ⭐ Recommended
+- **Coolify Deployment**: [DEPLOYMENT_COOLIFY.md](./DEPLOYMENT_COOLIFY.md)
+- **Authentication Setup**: [AUTH_SETUP.md](./AUTH_SETUP.md)
 - **Coolify Docs**: <https://coolify.io/docs>
 - **Hetzner Docs**: <https://docs.hetzner.com>
 - **Zitadel Docs**: <https://zitadel.com/docs>
 
 ## Quick Start
 
-**Deploying GadgetBot with Coolify:**
+**Deploying GadgetBot:**
 
-1. Read [DEPLOYMENT_COOLIFY.md](./DEPLOYMENT_COOLIFY.md)
-2. Get Hetzner VPS CX23 (€3.49/month)
-3. Install Coolify (one command)
-4. Deploy PostgreSQL database
-5. Deploy Zitadel using [ZITADEL_COOLIFY_COMPOSE.md](./ZITADEL_COOLIFY_COMPOSE.md)
-6. Deploy GadgetBot application via web UI
+1. Read [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md) for comprehensive instructions
+2. For Coolify-specific setup, see [DEPLOYMENT_COOLIFY.md](./DEPLOYMENT_COOLIFY.md)
+3. For authentication, see [AUTH_SETUP.md](./AUTH_SETUP.md)
 
 **Time estimate:** 1-2 hours first deployment
-
-Good luck! 🚀

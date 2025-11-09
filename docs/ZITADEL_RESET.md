@@ -8,8 +8,8 @@ If starting fresh:
 2. skip to [auth setup](./AUTH_SETUP.md).
 
 **Related Documentation**:
+
 - [ZITADEL_MIGRATION.md](./ZITADEL_MIGRATION.md) - Full export/import guide
-- [ZITADEL_3CONTAINER_NOTES.md](../ZITADEL_3CONTAINER_NOTES.md) - Critical post-import fixes
 - [AUTH_SETUP.md](./AUTH_SETUP.md) - Initial authentication setup
 
 ---
@@ -45,8 +45,7 @@ cp .env .env.backup
 grep ZITADEL_CLIENT_ID .env > client-id-backup.txt
 ```
 
-- [ ] `.env` backed up
-- [ ] Current Client ID documented
+This ensures you can restore your configuration if needed.
 
 ---
 
@@ -63,7 +62,7 @@ docker ps | grep zitadel
 # Should show: zitadel, zitadel-login, zitadel-db (all healthy)
 ```
 
-- [ ] Containers stopped, volumes removed, and restarted
+This command stops containers, removes volumes, and restarts Zitadel with a clean state.
 
 ### 3.2 First Instance Setup
 
@@ -93,3 +92,5 @@ docker ps | grep zitadel
 4. Get new Client ID from Console and update `.env`
 5. Change OIDC auth method from **"Basic"** to **"None"**
 6. Verify and save redirect URIs
+
+For detailed instructions on export/import, see [ZITADEL_MIGRATION.md](./ZITADEL_MIGRATION.md).

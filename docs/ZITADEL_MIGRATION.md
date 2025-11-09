@@ -363,7 +363,7 @@ sudo systemctl restart gadgetbot
 
 ## Coolify Deployment
 
-**Important**: See [ZITADEL_DEPLOYMENT_NOTES.md](./ZITADEL_DEPLOYMENT_NOTES.md) for detailed Coolify deployment instructions. Use Docker Image deployment, NOT Docker Compose.
+**Important**: See [ZITADEL_TROUBLESHOOTING.md](./ZITADEL_TROUBLESHOOTING.md) for detailed Coolify deployment instructions. Use Docker Image deployment, NOT Docker Compose.
 
 If you're using Coolify (see [DEPLOYMENT_COOLIFY.md](./DEPLOYMENT_COOLIFY.md)):
 
