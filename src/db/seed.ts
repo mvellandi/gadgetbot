@@ -1,8 +1,12 @@
-import { GadgetBot } from "../domains/products/gadgetbot"
+import { Effect } from "effect"
+import { createGadgetBot, findAllGadgetBots } from "./services/gadgetbot"
 
 /**
  * Seed database with sample GadgetBot data
  * Environment variables are loaded from process.env (works in both local and production)
+ *
+ * This script uses the database service layer directly (not domain API)
+ * because domain files are not included in production builds.
  */
 
 const sampleGadgetBots = [
@@ -53,7 +57,7 @@ async function seed() {
 
 	try {
 		// Check existing data
-		const existing = await GadgetBot.findAll()
+		const existing = await Effect.runPromise(findAllGadgetBots())
 		if (existing.length > 0) {
 			console.log(
 				`⚠️  Database already contains ${existing.length} GadgetBot(s)`,
@@ -64,7 +68,7 @@ async function seed() {
 
 		// Create sample GadgetBots
 		for (const bot of sampleGadgetBots) {
-			const created = await GadgetBot.create(bot)
+			const created = await Effect.runPromise(createGadgetBot(bot))
 			console.log(`✅ Created: ${created.name} (${created.type})`)
 		}
 
@@ -72,6 +76,9 @@ async function seed() {
 	} catch (error) {
 		console.error("❌ Seed failed:", error)
 		process.exit(1)
+	} finally {
+		// Exit process to close database connections
+		process.exit(0)
 	}
 }
 
