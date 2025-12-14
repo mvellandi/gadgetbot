@@ -44,8 +44,8 @@ function HomePage() {
 			</section>
 
 			{/* Gadgetbot Cards Section */}
-			<section className="py-16 px-6 max-w-7xl mx-auto">
-				<div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+			<section className="py-16 px-6">
+				<div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
 					<GadgetBotCard
 						type="Cleaning Bot"
 						description={BOT_SPECS.cleaning.description}
