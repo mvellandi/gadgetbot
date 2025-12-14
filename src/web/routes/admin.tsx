@@ -1,6 +1,20 @@
-import { Outlet, createFileRoute } from "@tanstack/react-router"
+import { Outlet, createFileRoute, redirect } from "@tanstack/react-router"
+import { createIsomorphicFn } from "@tanstack/react-start"
 import { useSession } from "@/web/auth/client"
 import { UserMenu } from "@/web/components/UserMenu"
+
+/**
+ * Server-only function to get session
+ * Wrapped in createIsomorphicFn to prevent server imports in client bundle
+ */
+const getServerSession = createIsomorphicFn().server(async () => {
+	const { getRequestHeaders } = await import("@tanstack/react-start/server")
+	const { auth } = await import("@/auth/server")
+
+	const headers = getRequestHeaders()
+	const session = await auth.api.getSession({ headers })
+	return session
+})
 
 /**
  * Admin Layout Route
@@ -9,39 +23,35 @@ import { UserMenu } from "@/web/components/UserMenu"
  * All routes under /admin/* inherit this authentication requirement.
  *
  * Features:
- * - Authentication check before rendering (beforeLoad)
+ * - Server-side authentication check (beforeLoad)
  * - Redirects to /login if not authenticated
- * - Provides user context to child routes
  * - Shows UserMenu in header
  */
 export const Route = createFileRoute("/admin")({
-	beforeLoad: async () => {
-		// For now, we'll check on the client side
-		// In a future iteration, we can add server-side session validation
-		return {}
+	beforeLoad: async ({ location }) => {
+		// Only run on server-side
+		if (typeof window === "undefined") {
+			const session = await getServerSession()
+
+			if (!session?.user) {
+				throw redirect({
+					to: "/login",
+					search: {
+						redirect: location.pathname,
+					},
+				})
+			}
+		}
 	},
 	component: AdminLayout,
 })
 
 function AdminLayout() {
-	const { data: session, isPending } = useSession()
+	const { data: session } = useSession()
 
-	// Show loading state while checking session
-	if (isPending) {
-		return (
-			<div className="flex items-center justify-center min-h-screen">
-				<div className="text-center">
-					<div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4" />
-					<p className="text-gray-600">Loading...</p>
-				</div>
-			</div>
-		)
-	}
-
-	// Redirect to login if not authenticated
+	// If no session on client, redirect will happen on next navigation
+	// This prevents flash during SSR hydration
 	if (!session?.user) {
-		// Client-side redirect
-		window.location.href = `/login?redirect=${encodeURIComponent(window.location.pathname)}`
 		return null
 	}
 

@@ -6,15 +6,39 @@ import { getRequestHeaders } from '@tanstack/react-start/server'
 import { createIsomorphicFn } from '@tanstack/react-start'
 
 import type { RouterClient } from '@orpc/server'
+import type { Context } from '@/orpc/context'
 
 import router from '@/orpc/router'
+import { auth } from '@/auth/server'
+
+/**
+ * Create oRPC context from request headers (server-side only)
+ *
+ * Extracts the Better Auth session from request headers/cookies.
+ * Must match the context creation logic in api.rpc.$.ts
+ */
+async function createServerContext(): Promise<Context> {
+  try {
+    const headers = getRequestHeaders()
+    const session = await auth.api.getSession({ headers })
+
+    return {
+      session: session?.session || null,
+      user: session?.user || null,
+    }
+  } catch (error) {
+    console.error('Failed to extract session in oRPC client:', error)
+    return {
+      session: null,
+      user: null,
+    }
+  }
+}
 
 const getORPCClient = createIsomorphicFn()
   .server(() =>
     createRouterClient(router, {
-      context: () => ({
-        headers: getRequestHeaders(),
-      }),
+      context: createServerContext,
     }),
   )
   .client((): RouterClient<typeof router> => {
