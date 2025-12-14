@@ -13,8 +13,7 @@ show_menu() {
     echo "2) Application only"
     echo "3) Database only"
     echo "4) Zitadel only"
-    echo "5) Nginx only"
-    echo "6) Exit"
+    echo "5) Exit"
     echo ""
 }
 
@@ -42,8 +41,7 @@ while true; do
         2) view_logs app ;;
         3) view_logs postgres ;;
         4) view_logs zitadel ;;
-        5) view_logs nginx ;;
-        6) exit 0 ;;
+        5) exit 0 ;;
         *) echo "Invalid option. Please try again." ;;
     esac
 

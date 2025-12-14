@@ -169,7 +169,6 @@ Provides a menu to view logs for:
 2. Application only
 3. Database only
 4. Zitadel only
-5. Nginx only
 
 ### Keyboard Shortcuts
 
@@ -189,7 +188,6 @@ docker compose -f docker-compose.prod.yml logs -f
 docker compose -f docker-compose.prod.yml logs -f app
 docker compose -f docker-compose.prod.yml logs -f postgres
 docker compose -f docker-compose.prod.yml logs -f zitadel
-docker compose -f docker-compose.prod.yml logs -f nginx
 
 # Last 100 lines
 docker compose -f docker-compose.prod.yml logs --tail=100 app

@@ -11,9 +11,9 @@ ExternalSecure: true
 ExternalPort: 443
 # ExternalDomain is set via environment variable
 
-# TLS configuration (handled by nginx reverse proxy)
+# TLS configuration (handled by reverse proxy)
 TLS:
-  Enabled: false  # Nginx handles TLS termination
+  Enabled: false  # Traefik handles TLS termination
   Mode: 'external'
 
 # Database configuration
@@ -107,4 +107,4 @@ Machine:
 
 # HTTP/2 server settings
 HTTP:
-  Port: 8080  # Internal port (nginx forwards to this)
+  Port: 8080  # Internal port (Traefik forwards to this)

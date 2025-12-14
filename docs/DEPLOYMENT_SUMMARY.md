@@ -25,7 +25,7 @@ GadgetBot is deployed as a multi-container Docker application with:
 - **PostgreSQL** - Database for both app and Zitadel
 - **Zitadel** - Self-hosted OAuth/OIDC authentication server
 - **GadgetBot App** - Your TanStack Start application
-- **Reverse Proxy** - SSL termination and routing (Traefik when using Coolify, or Nginx for manual deployments)
+- **Reverse Proxy** - SSL termination and routing (Traefik via Coolify)
 
 ## Architecture Overview
 
@@ -38,7 +38,7 @@ Internet
                                  │
                           ┌──────▼───────┐
                           │ Reverse Proxy │ (SSL Termination)
-                          │ Traefik/Nginx │
+                          │    Traefik    │
                           └──────┬───────┘
                                  │
                     ┏━━━━━━━━━━━━┻━━━━━━━━━━━━┓
@@ -94,7 +94,6 @@ gadgetbot/
 | PostgreSQL | 1 core | 768MB | Database for app + Zitadel |
 | Zitadel | 2 cores | 1GB | OAuth/OIDC server |
 | App | 1 core | 512MB | GadgetBot application |
-| Nginx | Default | Default | Reverse proxy (minimal) |
 
 Total reserved: ~2.25GB RAM, 4 cores (fits CPX21)
 
@@ -117,15 +116,6 @@ Based on [official production guide](https://zitadel.com/docs/self-hosting/manag
 - Structured JSON logging
 - OpenTelemetry metrics at `/debug/metrics`
 - Password hashing with bcrypt cost 14
-
-### Nginx
-
-**Configuration:**
-- HTTP/2 enabled
-- Gzip compression for assets
-- Security headers (HSTS, X-Frame-Options, etc.)
-- HTTP to HTTPS redirect
-- Separate server blocks for app and Zitadel
 
 ### PostgreSQL
 
