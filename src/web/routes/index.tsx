@@ -40,23 +40,32 @@ function HomePage() {
 				</div>
 			</section>
 
-			<div className="flex flex-col md:flex-row gap-8 max-w-4xl mx-auto pt-4">
-				{/* Features */}
-				<section className="py-6 flex-1">
+			<div className="py-8 flex flex-col md:flex-row gap-8 md:gap-24 max-w-4xl mx-auto px-6 md:px-0 justify-between md:pb-2">
+				{/* Get Started */}
+				<section className="flex-1">
 					<h2 className="text-3xl font-medium mb-2 text-cyan-400 max-w-4xl mx-auto tracking-tight">
 						Get Started
 					</h2>
-					<p className="text-lg text-gray-100 max-w-4xl mx-auto text-balance">
-						Go ahead and login using
+					<p className="text-lg text-gray-100">
+						Create and manage available bots by{" "}
+						<Link
+							to="/login"
+							search={{ redirect: "/admin" }}
+							className="text-cyan-400"
+						>
+							signing in
+						</Link>{" "}
+						with username: "demo", pass: "Demo777-" or register with a new
+						account"
 					</p>
 				</section>
 
 				{/* Features */}
-				<section className="py-6 flex-1">
+				<section className="flex-1">
 					<h2 className="text-3xl font-medium mb-2 text-cyan-400 max-w-4xl mx-auto tracking-tight">
 						Tech Stack
 					</h2>
-					<ul className="text-lg text-gray-400 max-w-4xl mx-auto text-balance [&_b]:text-gray-100 flex flex-col gap-2">
+					<ul className="text-lg text-gray-400 max-w-4xl [&_b]:text-gray-100 [&_b]:font-normal flex flex-col gap-1 md:gap-1">
 						<li>
 							<b>Framework</b>: TanStack Start, TypeScript
 						</li>
@@ -80,8 +89,8 @@ function HomePage() {
 			</div>
 
 			{/* Gadgetbot Cards Section */}
-			<section className="py-16 px-6">
-				<h2 className="text-3xl font-medium mb-2 text-cyan-400 max-w-4xl mx-auto tracking-tight">
+			<section className="pb-16 px-6">
+				<h2 className="text-3xl font-medium mb-4 text-cyan-400 max-w-4xl mx-auto tracking-tight">
 					Product Bots
 				</h2>
 				<div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
