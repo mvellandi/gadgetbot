@@ -31,7 +31,12 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
         title: 'GadgetBot Rental Service',
       },
     ],
-    // CSS is now imported directly and injected by Vite during SSR
+    links: [
+      {
+        rel: 'stylesheet',
+        href: '/src/web/styles.css',
+      },
+    ],
   }),
 
   shellComponent: RootDocument,
