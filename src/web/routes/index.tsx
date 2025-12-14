@@ -1,10 +1,10 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
-import { Bot, LogIn } from 'lucide-react'
-import { BOT_SPECS } from '@/domains/products/gadgetbot-specs'
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { Bot, LogIn } from "lucide-react";
+import { BOT_SPECS } from "@/domains/products/gadgetbot-specs";
 
-export const Route = createFileRoute('/')({
+export const Route = createFileRoute("/")({
 	component: HomePage,
-})
+});
 
 function HomePage() {
 	return (
@@ -22,29 +22,68 @@ function HomePage() {
 			</div>
 
 			{/* Hero Section */}
-			<section className="relative py-20 px-6 text-center overflow-hidden">
+			<section className="relative pt-20 pb-6 md:pb-12 px-6 text-center overflow-hidden">
 				<div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 via-blue-500/10 to-purple-500/10"></div>
 				<div className="relative max-w-5xl mx-auto">
-					<div className="flex items-center justify-center gap-6 mb-6">
-						<Bot className="w-24 h-24 md:w-32 md:h-32 text-cyan-400" />
-						<h1 className="text-6xl md:text-7xl font-bold text-white">
+					<div className="flex items-center justify-center gap-6 mb-4 md:-mb-3">
+						<Bot className="w-24 h-24 md:w-32 md:h-32 text-cyan-400 hidden md:inline-block" />
+						<h1 className="text-5xl md:text-7xl font-bold text-white">
 							<span className="bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
 								GadgetBot
 							</span>
 							<span className="text-gray-300"> Rentals</span>
 						</h1>
 					</div>
-					<p className="text-2xl md:text-3xl text-gray-300 mb-4 font-light">
-						Your trusted companion bot rental service
-					</p>
-					<p className="text-lg text-gray-400 max-w-3xl mx-auto text-balance">
-						Advanced TanStack robotics with Effect-powered type safety, ShadCN components, and Zitadel security.
+					<p className="text-xl md:text-2xl md:pl-24 text-gray-400 max-w-3xl mx-auto text-balance">
+						A demo app for securely managing product inventory.
 					</p>
 				</div>
 			</section>
 
+			<div className="flex flex-col md:flex-row gap-8 max-w-4xl mx-auto pt-4">
+				{/* Features */}
+				<section className="py-6 flex-1">
+					<h2 className="text-3xl font-medium mb-2 text-cyan-400 max-w-4xl mx-auto tracking-tight">
+						Get Started
+					</h2>
+					<p className="text-lg text-gray-100 max-w-4xl mx-auto text-balance">
+						Go ahead and login using
+					</p>
+				</section>
+
+				{/* Features */}
+				<section className="py-6 flex-1">
+					<h2 className="text-3xl font-medium mb-2 text-cyan-400 max-w-4xl mx-auto tracking-tight">
+						Tech Stack
+					</h2>
+					<ul className="text-lg text-gray-400 max-w-4xl mx-auto text-balance [&_b]:text-gray-100 flex flex-col gap-2">
+						<li>
+							<b>Framework</b>: TanStack Start, TypeScript
+						</li>
+						<li>
+							<b>Backend</b>: Effect, ORPC, TanStack Query
+						</li>
+						<li>
+							<b>Frontend</b>: Tailwind, ShadCN
+						</li>
+						<li>
+							<b>Data</b>: Postgres, Drizzle
+						</li>
+						<li>
+							<b>Authentication</b>: Zitadel, BetterAuth
+						</li>
+						<li>
+							<b>Fully hosted</b> on Hetzner using Coolify
+						</li>
+					</ul>
+				</section>
+			</div>
+
 			{/* Gadgetbot Cards Section */}
 			<section className="py-16 px-6">
+				<h2 className="text-3xl font-medium mb-2 text-cyan-400 max-w-4xl mx-auto tracking-tight">
+					Product Bots
+				</h2>
 				<div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
 					<GadgetBotCard
 						type="Cleaning Bot"
@@ -67,7 +106,7 @@ function HomePage() {
 				</div>
 			</section>
 		</div>
-	)
+	);
 }
 
 function GadgetBotCard({
@@ -76,10 +115,10 @@ function GadgetBotCard({
 	features,
 	imageUrl,
 }: {
-	type: string
-	description: string
-	features: readonly string[]
-	imageUrl: string | null
+	type: string;
+	description: string;
+	features: readonly string[];
+	imageUrl: string | null;
 }) {
 	return (
 		<div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl overflow-hidden hover:border-cyan-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/10 flex flex-col">
@@ -110,7 +149,10 @@ function GadgetBotCard({
 					</h4>
 					<ul className="space-y-2">
 						{features.map((feature, index) => (
-							<li key={index} className="text-sm text-gray-300 flex items-start gap-2">
+							<li
+								key={index}
+								className="text-sm text-gray-300 flex items-start gap-2"
+							>
 								<span className="text-cyan-400 mt-1">•</span>
 								<span>{feature}</span>
 							</li>
@@ -128,5 +170,5 @@ function GadgetBotCard({
 				</button>
 			</div>
 		</div>
-	)
+	);
 }
