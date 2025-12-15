@@ -46,8 +46,8 @@ function HomePage() {
 					<h2 className="text-3xl font-medium mb-2 text-cyan-400 max-w-4xl mx-auto tracking-tight">
 						Get Started
 					</h2>
-					<p className="text-lg text-gray-100">
-						Create and manage available bots by{" "}
+					<p className="text-lg text-gray-100 pb-6">
+						Create and manage bots by{" "}
 						<Link
 							to="/login"
 							search={{ redirect: "/admin" }}
@@ -55,8 +55,18 @@ function HomePage() {
 						>
 							signing in
 						</Link>{" "}
-						with username: "demo", pass: "Demo777-" or register with a new
-						account"
+						with username: "demo", pass: "Demo777-"
+					</p>
+					<p className="text-lg text-gray-100">
+						See the{" "}
+						<a
+							href="https://github.com/mvellandi/gadgetbot"
+							target="_blank"
+							rel="noopener noreferrer"
+							className="text-cyan-400"
+						>
+							GitHub repo
+						</a>
 					</p>
 				</section>
 
