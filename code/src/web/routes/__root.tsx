@@ -3,8 +3,7 @@ import {
   Scripts,
   createRootRouteWithContext,
 } from '@tanstack/react-router'
-import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
-import { TanStackDevtools } from '@tanstack/react-devtools'
+import React, { useEffect, useState } from 'react'
 
 import TanStackQueryDevtools from '../integrations/tanstack-query/devtools'
 
@@ -62,22 +61,55 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       </head>
       <body>
         {children}
-        {import.meta.env.DEV && (
-          <TanStackDevtools
-            config={{
-              position: 'bottom-right',
-            }}
-            plugins={[
-              {
-                name: 'Tanstack Router',
-                render: <TanStackRouterDevtoolsPanel />,
-              },
-              TanStackQueryDevtools,
-            ]}
-          />
-        )}
+        {import.meta.env.DEV && <DevtoolsLoader />}
         <Scripts />
       </body>
     </html>
+  )
+}
+
+function DevtoolsLoader() {
+  const [components, setComponents] = useState<{
+    TanStackDevtools?: any
+    TanStackRouterDevtoolsPanel?: any
+  } | null>(null)
+
+  useEffect(() => {
+    let mounted = true
+    if (!import.meta.env.DEV) return
+
+    Promise.all([
+      import('@tanstack/react-devtools').catch(() => ({})),
+      import('@tanstack/react-router-devtools').catch(() => ({})),
+    ]).then(([devtoolsMod, routerMod]) => {
+      if (!mounted) return
+      setComponents({
+        TanStackDevtools: devtoolsMod?.TanStackDevtools ?? devtoolsMod?.default,
+        TanStackRouterDevtoolsPanel:
+          routerMod?.TanStackRouterDevtoolsPanel ?? routerMod?.default,
+      })
+    })
+
+    return () => {
+      mounted = false
+    }
+  }, [])
+
+  if (!components) return null
+
+  const { TanStackDevtools, TanStackRouterDevtoolsPanel } = components
+  if (!TanStackDevtools) return null
+
+  return (
+    <TanStackDevtools
+      config={{ position: 'bottom-right' }}
+      plugins={[
+        {
+          name: 'Tanstack Router',
+          render: <TanStackRouterDevtoolsPanel />,
+        },
+        TanStackQueryDevtools,
+      ]}
+    />
   )
 }

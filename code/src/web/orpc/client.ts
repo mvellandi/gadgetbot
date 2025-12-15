@@ -2,14 +2,12 @@ import { createRouterClient } from '@orpc/server'
 import { createORPCClient } from '@orpc/client'
 import { RPCLink } from '@orpc/client/fetch'
 import { createTanstackQueryUtils } from '@orpc/tanstack-query'
-import { getRequestHeaders } from '@tanstack/react-start/server'
 import { createIsomorphicFn } from '@tanstack/react-start'
 
 import type { RouterClient } from '@orpc/server'
 import type { Context } from '@/orpc/context'
 
 import router from '@/orpc/router'
-import { auth } from '@/auth/server'
 
 /**
  * Create oRPC context from request headers (server-side only)
@@ -19,6 +17,9 @@ import { auth } from '@/auth/server'
  */
 async function createServerContext(): Promise<Context> {
   try {
+    const { getRequestHeaders } = await import('@tanstack/react-start/server')
+    const { auth } = await import('@/auth/server')
+
     const headers = getRequestHeaders()
     const session = await auth.api.getSession({ headers })
 
