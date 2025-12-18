@@ -29,6 +29,10 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
       {
         title: 'GadgetBot Rental Service',
       },
+      {
+        name: 'theme-color',
+        content: '#0f172a',
+      },
     ],
     links: [
       {
