@@ -99,6 +99,9 @@
       "vitest": "$vitest",
       "@prisma/client": "npm:noop@1.0.0",
       "prisma": "npm:noop@1.0.0"
+    },
+    "@esbuild-kit/core-utils": {
+      "esbuild": "^0.25.0"
     }
   }
 }
