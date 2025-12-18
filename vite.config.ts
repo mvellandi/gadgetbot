@@ -8,7 +8,9 @@ import { nitroV2Plugin } from '@tanstack/nitro-v2-vite-plugin'
 
 const config = defineConfig({
   plugins: [
-    nitroV2Plugin(),
+    nitroV2Plugin({
+      compatibilityDate: '2025-12-18',
+    }),
     // this is the plugin that enables path aliases
     viteTsConfigPaths({
       projects: ['./tsconfig.json'],
