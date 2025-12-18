@@ -35,7 +35,7 @@ function HomePage() {
 						</h1>
 					</div>
 					<p className="text-xl md:text-2xl md:pl-24 text-gray-400 max-w-3xl mx-auto text-balance">
-						A demo app for securely managing product inventory.
+						A demo app for securely managing product inventory
 					</p>
 				</div>
 			</section>
@@ -57,17 +57,22 @@ function HomePage() {
 						</Link>{" "}
 						with username: "demo", pass: "Demo777-"
 					</p>
-					<p className="text-lg text-gray-100">
-						See the{" "}
-						<a
-							href="https://github.com/mvellandi/gadgetbot"
-							target="_blank"
-							rel="noopener noreferrer"
-							className="text-cyan-400"
-						>
-							GitHub repo
-						</a>
-					</p>
+					<div className="flex gap-4 items-center">
+						<img
+							src="/github.svg"
+							className="h-12 w-12 bg-white rounded-full border border-white"
+						/>
+						<p className="text-lg text-gray-100">
+							<a
+								href="https://github.com/mvellandi/gadgetbot"
+								target="_blank"
+								rel="noopener noreferrer"
+								className="text-cyan-400"
+							>
+								GitHub
+							</a>
+						</p>
+					</div>
 				</section>
 
 				{/* Features */}
