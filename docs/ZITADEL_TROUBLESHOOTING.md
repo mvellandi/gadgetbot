@@ -7,7 +7,7 @@
 
 ## Summary
 
-Successfully deployed Zitadel 3-container stack (Zitadel + Login V2 + PostgreSQL) to production with working Traefik routing and Login V2 configuration. The console is now accessible at `https://gadgetbot-auth.vellandi.net/ui/console` and redirects to Login V2 UI.
+Successfully deployed Zitadel 3-container stack (Zitadel + Login V2 + PostgreSQL) to production with working Traefik routing and Login V2 configuration. The console is now accessible at `https://auth.vellandi.net/ui/console` and redirects to Login V2 UI.
 
 ---
 
@@ -74,12 +74,12 @@ environment:
 **Solution**: Use external domain for browser redirects, internal URLs for container communication:
 ```yaml
 # In Zitadel container - for browser redirects
-ZITADEL_DEFAULTINSTANCE_FEATURES_LOGINV2_BASEURI: https://gadgetbot-auth.vellandi.net/ui/v2/login
-ZITADEL_OIDC_DEFAULTLOGINURLV2: https://gadgetbot-auth.vellandi.net/ui/v2/login/login?authRequest=
+ZITADEL_DEFAULTINSTANCE_FEATURES_LOGINV2_BASEURI: https://auth.vellandi.net/ui/v2/login
+ZITADEL_OIDC_DEFAULTLOGINURLV2: https://auth.vellandi.net/ui/v2/login/login?authRequest=
 
 # In Login container - for API calls
 ZITADEL_API_URL: http://zitadel:8080
-CUSTOM_REQUEST_HEADERS: Host:gadgetbot-auth.vellandi.net
+CUSTOM_REQUEST_HEADERS: Host:auth.vellandi.net
 ```
 
 ---
@@ -94,7 +94,7 @@ login:
     - zitadel-network  # For talking to Zitadel
     - coolify          # For Traefik routing
   labels:
-    - "traefik.http.routers.zitadel-login.rule=Host(`gadgetbot-auth.vellandi.net`) && PathPrefix(`/ui/v2/login`)"
+    - "traefik.http.routers.zitadel-login.rule=Host(`auth.vellandi.net`) && PathPrefix(`/ui/v2/login`)"
     - "traefik.http.routers.zitadel-login.priority=100"  # Higher priority than main router
 ```
 
@@ -107,7 +107,7 @@ login:
 
 **Solution**: Add `CUSTOM_REQUEST_HEADERS` to send correct Host header:
 ```yaml
-CUSTOM_REQUEST_HEADERS: Host:gadgetbot-auth.vellandi.net
+CUSTOM_REQUEST_HEADERS: Host:auth.vellandi.net
 ```
 
 ---
@@ -127,7 +127,7 @@ ssh hetzner-gadgetbot "docker restart coolify-proxy"
 ## Working Deployment Steps
 
 ### Prerequisites
-1. Domain DNS configured: `gadgetbot-auth.vellandi.net` → Server IP
+1. Domain DNS configured: `auth.vellandi.net` → Server IP
 2. Environment variables set in Coolify (see `.env.zitadel.production.example`)
 3. Docker Compose file: `zitadel/docker-compose.production.yml`
 
@@ -160,12 +160,12 @@ ssh hetzner-gadgetbot "docker restart coolify-proxy"
    docker ps --filter name=zitadel
 
    # Test console access
-   curl -I https://gadgetbot-auth.vellandi.net/ui/console
+   curl -I https://auth.vellandi.net/ui/console
    # Should return HTTP 200
    ```
 
 6. **Access console**:
-   - URL: `https://gadgetbot-auth.vellandi.net/ui/console`
+   - URL: `https://auth.vellandi.net/ui/console`
    - Should redirect to Login V2 UI
    - **Next step**: Test login with default credentials
 
@@ -186,7 +186,7 @@ ZITADEL_DB_PASSWORD=<secure-password>
 ### In zitadel/docker-compose.production.yml
 ```yaml
 # Zitadel Container
-ZITADEL_EXTERNALDOMAIN: gadgetbot-auth.vellandi.net
+ZITADEL_EXTERNALDOMAIN: auth.vellandi.net
 ZITADEL_EXTERNALSECURE: true
 ZITADEL_TLS_ENABLED: "false"  # Quoted!
 
@@ -199,12 +199,12 @@ ZITADEL_FIRSTINSTANCE_ORG_LOGINCLIENT_PAT_EXPIRATIONDATE: '2029-01-01T00:00:00Z'
 
 # Login V2 Configuration
 ZITADEL_DEFAULTINSTANCE_FEATURES_LOGINV2_REQUIRED: true
-ZITADEL_DEFAULTINSTANCE_FEATURES_LOGINV2_BASEURI: https://gadgetbot-auth.vellandi.net/ui/v2/login
-ZITADEL_OIDC_DEFAULTLOGINURLV2: https://gadgetbot-auth.vellandi.net/ui/v2/login/login?authRequest=
+ZITADEL_DEFAULTINSTANCE_FEATURES_LOGINV2_BASEURI: https://auth.vellandi.net/ui/v2/login
+ZITADEL_OIDC_DEFAULTLOGINURLV2: https://auth.vellandi.net/ui/v2/login/login?authRequest=
 
 # Login Container
 ZITADEL_API_URL: http://zitadel:8080
-CUSTOM_REQUEST_HEADERS: Host:gadgetbot-auth.vellandi.net
+CUSTOM_REQUEST_HEADERS: Host:auth.vellandi.net
 ```
 
 ---
@@ -213,14 +213,14 @@ CUSTOM_REQUEST_HEADERS: Host:gadgetbot-auth.vellandi.net
 
 ### Zitadel Router
 ```yaml
-- "traefik.http.routers.zitadel.rule=Host(`gadgetbot-auth.vellandi.net`)"
+- "traefik.http.routers.zitadel.rule=Host(`auth.vellandi.net`)"
 - "traefik.http.routers.zitadel.entrypoints=https"  # NOT websecure!
 - "traefik.http.services.zitadel.loadbalancer.server.port=8080"
 ```
 
 ### Login Router (Higher Priority)
 ```yaml
-- "traefik.http.routers.zitadel-login.rule=Host(`gadgetbot-auth.vellandi.net`) && PathPrefix(`/ui/v2/login`)"
+- "traefik.http.routers.zitadel-login.rule=Host(`auth.vellandi.net`) && PathPrefix(`/ui/v2/login`)"
 - "traefik.http.routers.zitadel-login.entrypoints=https"
 - "traefik.http.routers.zitadel-login.priority=100"  # Match login paths first
 - "traefik.http.services.zitadel-login.loadbalancer.server.port=3000"
@@ -270,7 +270,7 @@ docker run --rm --network coolify curlimages/curl:latest \
 docker restart coolify-proxy
 
 # 4. Test again
-curl -I https://gadgetbot-auth.vellandi.net/ui/console
+curl -I https://auth.vellandi.net/ui/console
 ```
 
 ### Login V2 Returns HTTP 500
@@ -291,7 +291,7 @@ docker inspect zitadel-poo88s8sskwgogwwkgkgk8k4 \
   --format '{{json .Config.Env}}' | jq -r '.[]' | grep LOGINV2
 
 # Should use external domain:
-# ZITADEL_DEFAULTINSTANCE_FEATURES_LOGINV2_BASEURI=https://gadgetbot-auth.vellandi.net/ui/v2/login
+# ZITADEL_DEFAULTINSTANCE_FEATURES_LOGINV2_BASEURI=https://auth.vellandi.net/ui/v2/login
 ```
 
 ### Login Container Unhealthy

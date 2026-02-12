@@ -34,7 +34,7 @@ Zitadel uses a **multi-layered identity system** where usernames, emails, and lo
 ### 4. Organization Domain Suffix
 - **Purpose**: Provides fully-qualified login names
 - **Location**: `projections.login_names3_domains.name`
-- **Format**: `{org_name}.{external_domain}` (e.g., `gadgetbot.gadgetbot-auth.vellandi.net`)
+- **Format**: `{org_name}.{external_domain}` (e.g., `gadgetbot.auth.vellandi.net`)
 - **Set during**: First instance initialization via `ZITADEL_FIRSTINSTANCE_ORG_NAME` and `ZITADEL_EXTERNALDOMAIN`
 
 ---
@@ -113,7 +113,7 @@ instance_id    | text     -- Instance ID
 
 **Example**:
 ```sql
-name: gadgetbot.gadgetbot-auth.vellandi.net
+name: gadgetbot.auth.vellandi.net
 is_primary: true
 resource_owner: 344801573492293897 (GadgetBot org)
 ```
@@ -134,7 +134,7 @@ is_default: true
 
 **Impact**: When `must_be_domain = false`, Zitadel accepts login in multiple formats:
 - Short form: `dev@vellandi.net`
-- Full form: `dev@vellandi.net@gadgetbot.gadgetbot-auth.vellandi.net`
+- Full form: `dev@vellandi.net@gadgetbot.auth.vellandi.net`
 
 ---
 
@@ -205,8 +205,8 @@ payload: {"userName": "dev@vellandi.net"}
 -- Initial user creation
 event_type: user.human.added
 payload: {
-  "userName": "admin@gadgetbot.gadgetbot-auth.vellandi.net",
-  "email": "admin@gadgetbot.gadgetbot-auth.vellandi.net",
+  "userName": "admin@gadgetbot.auth.vellandi.net",
+  "email": "admin@gadgetbot.auth.vellandi.net",
   "firstName": "Mario",
   "lastName": "Vellandi"
 }
@@ -247,13 +247,13 @@ WHERE is_default = true;
 If `must_be_domain = false`, accept both short and full formats.
 
 ### Step 2: Parse Login Input
-Given input: `admin@gadgetbot.gadgetbot-auth.vellandi.net`
+Given input: `admin@gadgetbot.auth.vellandi.net`
 
 Zitadel checks:
 1. **Exact match**: Does this match any `login_names3_users.user_name`?
 2. **Domain suffix resolution**: Does this match `{username}@{org_domain}`?
    - Extract potential username: `admin`
-   - Check if `gadgetbot.gadgetbot-auth.vellandi.net` exists in `login_names3_domains`
+   - Check if `gadgetbot.auth.vellandi.net` exists in `login_names3_domains`
    - If yes, look for user with username = `admin`
 
 ### Step 3: User Lookup
@@ -269,15 +269,15 @@ WHERE user_name_lower = lower('dev@vellandi.net');
 
 ### Why Old Username Still Works
 
-**Theory**: When you log in with `admin@gadgetbot.gadgetbot-auth.vellandi.net`, Zitadel may be:
+**Theory**: When you log in with `admin@gadgetbot.auth.vellandi.net`, Zitadel may be:
 
-1. **Parsing it as**: `admin` + `@gadgetbot.gadgetbot-auth.vellandi.net`
-2. **Checking**: Is `gadgetbot.gadgetbot-auth.vellandi.net` a valid org domain? (Yes)
+1. **Parsing it as**: `admin` + `@gadgetbot.auth.vellandi.net`
+2. **Checking**: Is `gadgetbot.auth.vellandi.net` a valid org domain? (Yes)
 3. **Looking for**: A user with username = `admin` in that org
 4. **Not finding exact match**: But finding your user via email match or other fallback
 
 **Alternative Theory**: Email-based login fallback
-- Your initial email was `admin@gadgetbot.gadgetbot-auth.vellandi.net`
+- Your initial email was `admin@gadgetbot.auth.vellandi.net`
 - We only updated `users14_humans.email`, not cleared any email-based login caches
 - Zitadel might allow login with verified email addresses as an alternative
 
@@ -297,7 +297,7 @@ ZITADEL_FIRSTINSTANCE_ORG_NAME: GadgetBot
 ZITADEL_FIRSTINSTANCE_ORG_HUMAN_USERNAME: admin
 ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORD: Admin123!
 ZITADEL_FIRSTINSTANCE_ORG_HUMAN_EMAIL_VERIFIED: true
-ZITADEL_EXTERNALDOMAIN: gadgetbot-auth.vellandi.net
+ZITADEL_EXTERNALDOMAIN: auth.vellandi.net
 ```
 
 ### What Gets Created
@@ -310,21 +310,21 @@ ZITADEL_EXTERNALDOMAIN: gadgetbot-auth.vellandi.net
 
 2. **Organization Domain** (`projections.login_names3_domains`):
    ```sql
-   name: gadgetbot.gadgetbot-auth.vellandi.net
+   name: gadgetbot.auth.vellandi.net
    -- Format: {org_name_lowercase}.{external_domain}
    ```
 
 3. **User** (`projections.users14`):
    ```sql
    id: 344801573492818185
-   username: admin@gadgetbot.gadgetbot-auth.vellandi.net
+   username: admin@gadgetbot.auth.vellandi.net
    -- Format: {username}@{org_domain}
    ```
 
 4. **Human Details** (`projections.users14_humans`):
    ```sql
    user_id: 344801573492818185
-   email: admin@gadgetbot.gadgetbot-auth.vellandi.net
+   email: admin@gadgetbot.auth.vellandi.net
    is_email_verified: true
    ```
 
@@ -350,7 +350,7 @@ username = {value}@{org_name_lower}.{external_domain}
 
 So:
 - Input: `ZITADEL_FIRSTINSTANCE_ORG_HUMAN_USERNAME=admin`
-- Actual username: `admin@gadgetbot.gadgetbot-auth.vellandi.net`
+- Actual username: `admin@gadgetbot.auth.vellandi.net`
 
 This is **not documented clearly** in Zitadel's official docs.
 
@@ -363,8 +363,8 @@ Zitadel **ignores** the `ZITADEL_FIRSTINSTANCE_ORG_HUMAN_EMAIL` environment vari
 **Evidence from production deployment**:
 - Environment variable set: `ZITADEL_FIRSTINSTANCE_ORG_HUMAN_USERNAME=admin`
 - Environment variable set: `ZITADEL_FIRSTINSTANCE_ORG_HUMAN_EMAIL=dev@vellandi.net`
-- Actual username created: `admin@gadgetbot.gadgetbot-auth.vellandi.net` (transformed from "admin")
-- Actual email created: `admin@gadgetbot.gadgetbot-auth.vellandi.net` (ignored `dev@vellandi.net`)
+- Actual username created: `admin@gadgetbot.auth.vellandi.net` (transformed from "admin")
+- Actual email created: `admin@gadgetbot.auth.vellandi.net` (ignored `dev@vellandi.net`)
 - Confirmed via `docker inspect` and `eventstore.events2` audit log
 
 **Implication**: You **cannot** set a custom email during first instance initialization. The email will always be:
@@ -388,7 +388,7 @@ After deployment, manually change the email via:
 ## How to Change Username and Email
 
 ### Option 1: Via Zitadel Console UI
-1. Log into console: https://gadgetbot-auth.vellandi.net/ui/console
+1. Log into console: https://auth.vellandi.net/ui/console
 2. Navigate to: Users → Click user → Edit
 3. Change "Username" field
 4. Change "Email" field separately
@@ -399,9 +399,9 @@ After deployment, manually change the email via:
 **⚠️ Note on Username Changes**: After changing username via Console UI, the **old username may still work for login** despite not appearing in the database projections.
 
 **Evidence** (tested 2025-11-01):
-- Changed username from `admin@gadgetbot.gadgetbot-auth.vellandi.net` to `dev@vellandi.net`
+- Changed username from `admin@gadgetbot.auth.vellandi.net` to `dev@vellandi.net`
 - Database shows only `dev@vellandi.net` in all projection tables
-- **But**: Login with `admin@gadgetbot.gadgetbot-auth.vellandi.net` still succeeds (tested in private browser)
+- **But**: Login with `admin@gadgetbot.auth.vellandi.net` still succeeds (tested in private browser)
 - Theory: Zitadel's login resolver may use organization domain matching as a fallback
 
 This appears to be an undocumented feature or side effect of Zitadel's login name resolution algorithm.
@@ -451,7 +451,7 @@ AND unique_field = 'old-username';
 
 **Current behavior**:
 - `ZITADEL_FIRSTINSTANCE_ORG_HUMAN_USERNAME=admin`
-- Creates username: `admin@gadgetbot.gadgetbot-auth.vellandi.net`
+- Creates username: `admin@gadgetbot.auth.vellandi.net`
 
 **Why this is bad**:
 - Long and confusing
@@ -470,7 +470,7 @@ ZITADEL_FIRSTINSTANCE_ORG_HUMAN_EMAIL_VERIFIED: true
 ```
 
 **Result**:
-- Username: `dev@vellandi.net@gadgetbot.gadgetbot-auth.vellandi.net`
+- Username: `dev@vellandi.net@gadgetbot.auth.vellandi.net`
 - Email: `dev@vellandi.net`
 - Login: `dev@vellandi.net` (short form works with `must_be_domain=false`)
 
@@ -538,10 +538,10 @@ To verify which login formats work, test these inputs:
 
 **Expected to work**:
 - ✅ `dev@vellandi.net` (short form, if `must_be_domain=false`)
-- ✅ `dev@vellandi.net@gadgetbot.gadgetbot-auth.vellandi.net` (full form)
+- ✅ `dev@vellandi.net@gadgetbot.auth.vellandi.net` (full form)
 
 **May work (needs verification)**:
-- ❓ `admin@gadgetbot.gadgetbot-auth.vellandi.net` (old username - currently works)
+- ❓ `admin@gadgetbot.auth.vellandi.net` (old username - currently works)
 - ❓ Email address as login identifier (if Zitadel allows email-based login)
 
 ### How to Test via SQL
@@ -621,8 +621,8 @@ id                 | username                                      | email      
 ### Key Findings
 
 1. **Initial Admin User**:
-   - **Username (loginname)**: `zitadel-admin@zitadel.gadgetbot-auth.vellandi.net`
-   - **Email**: `zitadel-admin@zitadel.gadgetbot-auth.vellandi.net`
+   - **Username (loginname)**: `zitadel-admin@zitadel.auth.vellandi.net`
+   - **Email**: `zitadel-admin@zitadel.auth.vellandi.net`
    - **Display Name**: `ZITADEL Admin`
    - **Type**: 1 (human)
    - **State**: 1 (active)
@@ -641,7 +641,7 @@ id                 | username                                      | email      
    ```
    id                 | name    | primary_domain
    -------------------+---------+------------------------------------
-   345523391232542211 | ZITADEL | zitadel.gadgetbot-auth.vellandi.net
+   345523391232542211 | ZITADEL | zitadel.auth.vellandi.net
    ```
 
 ### Production Login Credentials
@@ -649,7 +649,7 @@ id                 | username                                      | email      
 For fresh Zitadel production deployments, the **loginname** for the initial admin user is:
 
 ```
-zitadel-admin@zitadel.gadgetbot-auth.vellandi.net
+zitadel-admin@zitadel.auth.vellandi.net
 ```
 
 **Password**: When not specified in environment variables, Zitadel uses the default password:
@@ -671,7 +671,7 @@ The production deployment used Zitadel's default values when these environment v
 
 ```yaml
 # What was set:
-ZITADEL_EXTERNALDOMAIN: gadgetbot-auth.vellandi.net
+ZITADEL_EXTERNALDOMAIN: auth.vellandi.net
 ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORDCHANGEREQUIRED: false
 
 # What was NOT set (so Zitadel used defaults):

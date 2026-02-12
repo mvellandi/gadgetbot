@@ -32,7 +32,7 @@ This guide covers production deployment of GadgetBot, optimized for:
 
 **DNS Records** (at `vellandi.net`)
 - `gadgetbot.vellandi.net` → 65.21.154.182
-- `gadgetbot-auth.vellandi.net` → 65.21.154.182
+- `auth.vellandi.net` → 65.21.154.182
 - `gadgetbot-coolify.vellandi.net` → 65.21.154.182
 
 **Databases** (Running in Coolify)
@@ -41,7 +41,7 @@ This guide covers production deployment of GadgetBot, optimized for:
 
 **Zitadel Authentication**
 - Deployed via Docker Compose
-- Accessible at: `https://gadgetbot-auth.vellandi.net`
+- Accessible at: `https://auth.vellandi.net`
 - Admin user configured
 - Login V2 UI enabled
 
@@ -80,7 +80,7 @@ Coolify Resources (4 total):
 │  ┌────────────────────────────────────────────────────┐    │
 │  │  Traefik Reverse Proxy (SSL/Routing)               │    │
 │  │  ├── gadgetbot.vellandi.net → gadgetbot-app        │    │
-│  │  └── gadgetbot-auth.vellandi.net → zitadel-stack   │    │
+│  │  └── auth.vellandi.net → zitadel-stack   │    │
 │  └────────────────────────────────────────────────────┘    │
 │                                                             │
 │  ┌────────────────────────────────────────────────────┐    │
@@ -155,7 +155,7 @@ Coolify Resources (4 total):
 Create `zitadel/docker-compose.production.yml` based on [zitadel/docker-compose.local.yml](../zitadel/docker-compose.local.yml):
 
 **Key changes for production:**
-- Set `ZITADEL_EXTERNALDOMAIN=gadgetbot-auth.vellandi.net`
+- Set `ZITADEL_EXTERNALDOMAIN=auth.vellandi.net`
 - Set `ZITADEL_EXTERNALSECURE=true`
 - Enable Login V2: `ZITADEL_DEFAULTINSTANCE_FEATURES_LOGINV2_REQUIRED=true`
 - Configure Login V2 URLs for production domain
@@ -170,13 +170,13 @@ Create `zitadel/docker-compose.production.yml` based on [zitadel/docker-compose.
    - `ZITADEL_MASTERKEY` (generate 32-char secret)
    - Database credentials from `zitadel-db` resource
    - Admin user credentials
-4. Deploy and verify at `https://gadgetbot-auth.vellandi.net`
+4. Deploy and verify at `https://auth.vellandi.net`
 
 #### Verify Login V2
 
-- Access: `https://gadgetbot-auth.vellandi.net/ui/v2/login`
+- Access: `https://auth.vellandi.net/ui/v2/login`
 - Test admin login
-- Verify console access: `https://gadgetbot-auth.vellandi.net/ui/console`
+- Verify console access: `https://auth.vellandi.net/ui/console`
 
 ---
 
@@ -232,7 +232,7 @@ Create `zitadel/docker-compose.production.yml` based on [zitadel/docker-compose.
 | `APP_URL` | `https://gadgetbot.vellandi.net` | Your production domain |
 | `BETTER_AUTH_URL` | `https://gadgetbot.vellandi.net` | Same as APP_URL |
 | `BETTER_AUTH_SECRET` | `<generate>` | Generate: `openssl rand -base64 32` (32+ chars) |
-| `ZITADEL_ISSUER_URL` | `https://gadgetbot-auth.vellandi.net` | Zitadel instance URL |
+| `ZITADEL_ISSUER_URL` | `https://auth.vellandi.net` | Zitadel instance URL |
 | `ZITADEL_CLIENT_ID` | `<from-oauth-config>` | Leave empty for initial deployment, add after Zitadel setup |
 
 **How to Get Values:**
@@ -351,7 +351,7 @@ If you've already configured Zitadel in development, import the configuration:
    ```
 
 3. **Create service token in production Zitadel**:
-   - Login to Zitadel Console: `https://gadgetbot-auth.vellandi.net/ui/console`
+   - Login to Zitadel Console: `https://auth.vellandi.net/ui/console`
    - Go to **Users → Service Users**
    - Create new service user with **Organization Owner Manager** role
    - Generate **Personal Access Token (PAT)**
@@ -363,7 +363,7 @@ If you've already configured Zitadel in development, import the configuration:
    - On your **local development machine**, set environment variables:
 
      ```bash
-     export ZITADEL_ISSUER_URL=https://gadgetbot-auth.vellandi.net
+     export ZITADEL_ISSUER_URL=https://auth.vellandi.net
      export ZITADEL_SERVICE_TOKEN=<prod-service-token-from-step-3>
      ```
 
@@ -383,7 +383,7 @@ If you've already configured Zitadel in development, import the configuration:
    > **Why local machine?** The import script makes HTTP API calls to Zitadel and reads `zitadel/export.json` from your local repo. It doesn't need to run inside any container.
 
 5. **Post-import fixes** (IMPORTANT - import doesn't preserve all settings):
-   - Login to Zitadel Console: `https://gadgetbot-auth.vellandi.net/ui/console`
+   - Login to Zitadel Console: `https://auth.vellandi.net/ui/console`
    - Navigate to: **Projects → GadgetBot → Applications → GadgetBot Web**
    - Fix **OIDC Authentication Method**: Change from "Basic" to **"None"**
    - **Enable "Use new login UI"** checkbox (critical for v2 login container)
@@ -402,7 +402,7 @@ If you've already configured Zitadel in development, import the configuration:
 
 If you prefer to set up Zitadel from scratch:
 
-1. Login to Zitadel: `https://gadgetbot-auth.vellandi.net/ui/console`
+1. Login to Zitadel: `https://auth.vellandi.net/ui/console`
 2. Go to **Projects** → Create new project named "GadgetBot"
 3. Click **New Application**
 4. Configure:
@@ -504,7 +504,7 @@ This adds sample GadgetBot data for testing.
 
 1. Visit: `https://gadgetbot.vellandi.net`
 2. Click "Sign In"
-3. Should redirect to: `https://gadgetbot-auth.vellandi.net/ui/v2/login`
+3. Should redirect to: `https://auth.vellandi.net/ui/v2/login`
 4. Login with Zitadel user
 5. Should redirect back to GadgetBot with authenticated session
 6. Verify user menu shows logged-in state
@@ -693,12 +693,12 @@ docker exec <zitadel-db-container> pg_dump -U postgres zitadel > zitadel_backup_
 2. Check Login V2 URLs in compose file
 3. Verify `zitadel-login` container is running
 4. Check network mode: `network_mode: service:zitadel`
-5. Access directly: `https://gadgetbot-auth.vellandi.net/ui/v2/login`
+5. Access directly: `https://auth.vellandi.net/ui/v2/login`
 
 **Authentication hangs/timeouts on new browser tabs:**
 
 - **Symptom**: Existing Zitadel console tab works, but new tabs timeout when signing in
-- **URL shows**: `https://gadgetbot-auth.vellandi.net/ui/v2/login/login?authRequest=...` hangs
+- **URL shows**: `https://auth.vellandi.net/ui/v2/login/login?authRequest=...` hangs
 - **Cause**: "Use new login UI" checkbox is disabled in Zitadel OIDC settings
 - **Solution**:
   1. In working Zitadel console tab: Projects → GadgetBot → Applications → GadgetBot Web

@@ -6,7 +6,7 @@
 **IP Address**: 65.21.154.182
 **Domains**:
 - Main app: `gadgetbot.vellandi.net`
-- Authentication: `gadgetbot-auth.vellandi.net`
+- Authentication: `auth.vellandi.net`
 - Coolify dashboard: `gadgetbot-coolify.vellandi.net`
 
 ---
@@ -69,10 +69,10 @@
 ### 9. Zitadel Service (✅ COMPLETE)
 - [x] Deployed via Docker Compose (minimal approach)
 - [x] Configured environment variables (including LOGINV2_REQUIRED=false)
-- [x] Domain: `gadgetbot-auth.vellandi.net`
+- [x] Domain: `auth.vellandi.net`
 - [x] Successfully initialized with first admin user
-- [x] Accessible at https://gadgetbot-auth.vellandi.net/ui/console
-- [x] Admin login: `admin@gadgetbot.gadgetbot-auth.vellandi.net`
+- [x] Accessible at https://auth.vellandi.net/ui/console
+- [x] Admin login: `admin@gadgetbot.auth.vellandi.net`
 
 **Key Learnings:**
 - ✅ Used `docker-compose.zitadel-prod.yml` (minimal single-service approach)
@@ -143,7 +143,7 @@ BETTER_AUTH_SECRET=<generate-32-char-secret>
 BETTER_AUTH_URL=https://gadgetbot.vellandi.net
 
 # Zitadel OAuth (get these after importing Zitadel config)
-ZITADEL_ISSUER=https://gadgetbot-auth.vellandi.net
+ZITADEL_ISSUER=https://auth.vellandi.net
 ZITADEL_CLIENT_ID=<from-zitadel-oauth-app>
 ZITADEL_CLIENT_SECRET=<from-zitadel-oauth-app>
 
@@ -184,7 +184,7 @@ exit
 3. Import to production:
    ```bash
    # Set production Zitadel URL
-   export ZITADEL_URL=https://gadgetbot-auth.vellandi.net
+   export ZITADEL_URL=https://auth.vellandi.net
 
    # Import configuration
    npm run zitadel:import
@@ -291,7 +291,7 @@ docker exec -it <postgres-container> psql -U gadgetbot -d gadgetbot
 Coolify generates malformed Traefik routing rules for Docker Compose:
 
 ```text
-error while adding rule Host(``) && PathPrefix(`gadgetbot-auth.vellandi.net`)
+error while adding rule Host(``) && PathPrefix(`auth.vellandi.net`)
 ```
 
 Empty `Host()` means Traefik cannot route traffic, even when containers are healthy.
